@@ -33,7 +33,6 @@
       background-size: 100% 100% !important;
     }
 
-    /* 難易度0〜4は明るいテーマ */
     body.theme-diff-0 {
       background: linear-gradient(180deg, #7dd3fc 0%, #bae6fd 40%, #86efac 75%, #4ade80 100%);
       color: #1e293b;
@@ -54,7 +53,6 @@
       background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%);
       color: #ffffff;
     }
-    /* 難易度5(悪夢)・6(地獄)だけ黒系のかっこいいテーマ */
     body.theme-diff-5 {
       background: linear-gradient(180deg, #311042 0%, #4c0519 60%, #1c0505 100%);
       color: #ffffff;
@@ -410,12 +408,14 @@
       object-fit: cover;
     }
 
+    /* ★ 完全に中央寄せ（テキスト中央揃え）した表示エリア */
     .word-area {
       text-align: center;
       margin-bottom: 22px;
       min-height: 155px;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
       border-radius: 16px;
       padding: 18px 24px;
@@ -440,9 +440,11 @@
       line-height: 1.35;
       letter-spacing: 0.5px;
       z-index: 5;
+      text-align: center;
+      width: 100%;
     }
 
-    /* ★ スクロールさせず完全に固定・自動折り返しするエリア */
+    /* ★ 中央揃え・完全固定のローマ字コンテナ */
     .word-roma-scroll-wrapper {
       width: 100%;
       overflow: hidden;
@@ -450,6 +452,7 @@
       white-space: pre-wrap;
       z-index: 5;
       padding: 4px 10px;
+      text-align: center;
     }
 
     .word-roma {
@@ -457,8 +460,9 @@
       font-size: 18px;
       font-weight: 800;
       letter-spacing: 1.5px;
-      display: inline;
+      display: inline-block;
       line-height: 1.6;
+      text-align: center;
     }
     .typed-char {
       color: #67e8f9 !important;
@@ -664,7 +668,7 @@
 
     .shop-grid-clean {
       display: grid;
-      grid-template-columns: 1fr; /* 1個になったため1カラム */
+      grid-template-columns: 1fr;
       gap: 16px;
       max-width: 420px;
       margin: 0 auto;
@@ -1130,7 +1134,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V3';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V4';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1203,7 +1207,6 @@
         document.body.classList.remove(`theme-diff-${i}`);
       }
       document.body.classList.add(`theme-diff-${diff}`);
-      // 難易度5(悪夢)・6(地獄)のみダークヘッダー
       if (diff >= 5) document.body.classList.add('dark-header');
       else document.body.classList.remove('dark-header');
     }
@@ -1504,9 +1507,54 @@
       missCount: 0,
       currentWord: null,
       typedIndex: 0,
+      currentAcceptablePatterns: [],
+      matchedPatternLength: 0,
       rivalName: "対戦相手",
       tugBalance: 0
     };
+
+    // ★ 複数パターンのローマ字（SI/SHIなど）に対応する変換テーブル
+    const ROMAZI_VARIANTS = {
+      "shi": ["shi", "si"],
+      "chi": ["chi", "ti"],
+      "tsu": ["tsu", "tu"],
+      "ji": ["ji", "zi"],
+      "sha": ["sha", "sya"],
+      "shu": ["shu", "syu"],
+      "sho": ["sho", "syo"],
+      "cha": ["cha", "cya", "tya"],
+      "chu": ["chu", "cyu", "tyu"],
+      "cho": ["cho", "cyo", "tyo"],
+      "ja": ["ja", "zya"],
+      "ju": ["ju", "zyu"],
+      "jo": ["jo", "zyo"],
+      "fa": ["fa", "fua"],
+      "fi": ["fi", "fui"],
+      "fe": ["fe", "fue"],
+      "fo": ["fo", "fuo"],
+      "wi": ["wi", "whi"],
+      "we": ["we", "whe"],
+      "wo": ["wo", "who"]
+    };
+
+    function generateVariants(romaStr) {
+      let patterns = [romaStr];
+      for (let key in ROMAZI_VARIANTS) {
+        let newPatterns = [];
+        let alts = ROMAZI_VARIANTS[key];
+        patterns.forEach(pat => {
+          if (pat.includes(key)) {
+            alts.forEach(alt => {
+              newPatterns.push(pat.replaceAll(key, alt));
+            });
+          }
+        });
+        if (newPatterns.length > 0) {
+          patterns = patterns.concat(newPatterns);
+        }
+      }
+      return Array.from(new Set(patterns));
+    }
 
     function selectDifficulty(diff) {
       if (gameState.isRunning) return;
@@ -1607,7 +1655,7 @@
       document.getElementById('hiddenTypeInput').disabled = true;
       document.getElementById('hiddenTypeInput').value = '';
       document.getElementById('mainStartBtn').style.display = 'block';
-      document.getElementById('mainStartBtn').innerText = 'ゲームスタート (SPACE)';
+      document.getElementById('mainStartBtn').innerText = 'もう一度あそぶ (SPACE)';
       document.getElementById('btnQuitGame').style.display = 'none';
       document.getElementById('michishitaPopup').classList.remove('active');
       document.getElementById('displayKanji').innerText = '道下タイピング';
@@ -1635,6 +1683,8 @@
       const selected = list[Math.floor(Math.random() * list.length)];
       gameState.currentWord = selected;
       gameState.typedIndex = 0;
+      gameState.matchedPatternLength = 0;
+      gameState.currentAcceptablePatterns = generateVariants(selected.r);
 
       const popup = document.getElementById('michishitaPopup');
       if (selected.k.includes("道下")) popup.classList.add('active');
@@ -1665,9 +1715,12 @@
       if (!gameState.isRunning || !gameState.currentWord) return;
       const inputChar = e.data ? e.data.toLowerCase() : hiddenInput.value.slice(-1).toLowerCase();
       hiddenInput.value = '';
-      const expectedChar = gameState.currentWord.r[gameState.typedIndex];
 
-      if (inputChar === expectedChar) {
+      // 現在の入力済み位置から次の1文字が進めるパターンが存在するか確認
+      let subTyped = gameState.currentWord.r.substring(0, gameState.typedIndex) + inputChar;
+      let matchFound = gameState.currentAcceptablePatterns.some(p => p.startsWith(subTyped));
+
+      if (matchFound) {
         soundType();
         gameState.typedIndex++;
         gameState.totalStrokes++;
