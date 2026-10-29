@@ -1133,7 +1133,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V5';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V6';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1505,19 +1505,19 @@
       totalStrokes: 0,
       missCount: 0,
       currentWord: null,
-      activeRomaString: "",
+      acceptablePatterns: [],
+      matchedFullString: "",
       typedIndex: 0,
       rivalName: "対戦相手",
       tugBalance: 0
     };
 
-    // ★ 代用入力（SI, TI, ZI, NNなど）を柔軟に全パターン生成する関数
-    function generateVariants(romaStr) {
-      // まず「nn」を「n'」や単独「n」でもいけるように展開準備
-      let expanded = romaStr.replace(/nn/g, "n'");
-      let patterns = [romaStr, expanded];
+    // ★ 複数のローマ字表記（SI, TI, ZI, NNなど）を安全にマッピングする処理
+    function buildAcceptablePatterns(romaStr) {
+      // 基本形から「nn」を「n'」や単独「n」にも対応できるように置換ベースを作る
+      let base = romaStr;
       
-      const ROMAZI_VARIANTS = {
+      const replacements = {
         "shi": ["shi", "si"],
         "chi": ["chi", "ti"],
         "tsu": ["tsu", "tu"],
@@ -1532,19 +1532,13 @@
         "ju": ["ju", "zyu"],
         "jo": ["jo", "zyo"],
         "fu": ["fu", "hu"],
-        "fa": ["fa", "fua"],
-        "fi": ["fi", "fui"],
-        "fe": ["fe", "fue"],
-        "fo": ["fo", "fuo"],
-        "wi": ["wi", "whi"],
-        "we": ["we", "whe"],
-        "wo": ["wo", "who"],
-        "n'": ["n'", "nn", "n"]
+        "nn": ["nn", "n'", "n"]
       };
 
-      for (let key in ROMAZI_VARIANTS) {
+      let patterns = [base];
+      for (let key in replacements) {
         let newPatterns = [];
-        let alts = ROMAZI_VARIANTS[key];
+        let alts = replacements[key];
         patterns.forEach(pat => {
           if (pat.includes(key)) {
             alts.forEach(alt => {
@@ -1686,7 +1680,8 @@
       const selected = list[Math.floor(Math.random() * list.length)];
       gameState.currentWord = selected;
       gameState.typedIndex = 0;
-      gameState.activeRomaString = selected.r; // 初期表示はデフォルトのローマ字
+      gameState.acceptablePatterns = buildAcceptablePatterns(selected.r);
+      gameState.matchedFullString = selected.r; // 初期表示
 
       const popup = document.getElementById('michishitaPopup');
       if (selected.k.includes("道下")) popup.classList.add('active');
@@ -1698,7 +1693,8 @@
     function updatePromptDisplay() {
       if (!gameState.currentWord) return;
       document.getElementById('displayKanji').innerText = gameState.currentWord.k;
-      const full = gameState.activeRomaString;
+      
+      const full = gameState.matchedFullString;
       const typed = full.substring(0, gameState.typedIndex);
       const currentChar = full[gameState.typedIndex] || '';
       const untypedRest = full.substring(gameState.typedIndex + 1);
@@ -1718,27 +1714,26 @@
       const inputChar = e.data ? e.data.toLowerCase() : hiddenInput.value.slice(-1).toLowerCase();
       hiddenInput.value = '';
 
-      // 現在の入力状態で一致する候補パターンをすべて取得
-      let currentTypedPart = gameState.activeRomaString.substring(0, gameState.typedIndex);
+      let currentTypedPart = gameState.matchedFullString.substring(0, gameState.typedIndex);
       let targetSubTyped = currentTypedPart + inputChar;
-      
-      let allVariants = generateVariants(gameState.currentWord.r);
-      let matchedPattern = allVariants.find(p => p.startsWith(targetSubTyped));
 
-      if (matchedPattern) {
+      // ユーザーの入力（SIやTIなど）に合致する最適なパターンを探す
+      let matched = gameState.acceptablePatterns.find(p => p.startsWith(targetSubTyped));
+
+      if (matched) {
         soundType();
-        gameState.activeRomaString = matchedPattern; // ユーザーが打った代用表記（SIやNNなど）に画面表示を自動書き換え！
+        gameState.matchedFullString = matched; // 画面の表示をユーザーの打ち方に合わせて自動変更
         gameState.typedIndex++;
         gameState.totalStrokes++;
         gameState.score += 10;
-        
+
         if (gameState.isRealtimeBattle && firebaseRoomRef) {
           firebaseRoomRef.child('players/' + myPlayerKey + '/score').set(gameState.score);
         }
-        
-        if (gameState.typedIndex >= gameState.activeRomaString.length) {
+
+        if (gameState.typedIndex >= gameState.matchedFullString.length) {
           soundCorrect();
-          gameState.score += gameState.activeRomaString.length * 5;
+          gameState.score += gameState.matchedFullString.length * 5;
           if (gameState.isRealtimeBattle && firebaseRoomRef) {
             firebaseRoomRef.child('players/' + myPlayerKey + '/score').set(gameState.score);
           }
