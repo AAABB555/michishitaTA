@@ -408,7 +408,7 @@
       object-fit: cover;
     }
 
-    /* ★ 完全に左右のズレを解消した完全センタリング配置エリア */
+    /* ★ 完全にズレをなくした中央揃えコンテナ */
     .word-area {
       text-align: center;
       margin-bottom: 22px;
@@ -436,10 +436,9 @@
       font-weight: 900;
       color: #ffffff !important;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.7);
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       line-height: 1.35;
       letter-spacing: 0.5px;
-      z-index: 5;
       width: 100%;
       text-align: center;
     }
@@ -447,24 +446,24 @@
     .word-roma-scroll-wrapper {
       width: 100%;
       overflow: hidden;
-      word-break: break-all;
-      white-space: pre-wrap;
-      z-index: 5;
-      padding: 4px 10px;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 2px 10px;
     }
 
+    /* ★ 等幅フォント（monospace）を強制し、文字列全体の中心が常に一致するように修正 */
     .word-roma {
-      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Courier New", monospace;
       font-size: 18px;
       font-weight: 800;
-      letter-spacing: 1.5px;
+      letter-spacing: 2px;
       line-height: 1.6;
       text-align: center;
       display: inline-block;
+      white-space: pre;
     }
+
     .typed-char {
       color: #67e8f9 !important;
       text-shadow: 0 0 10px rgba(103, 232, 249, 0.85);
@@ -1135,14 +1134,14 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V10';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V11';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
       { id: 1, title: "ルーキー道下", minScore: 240, desc: "キーボードの配置を思い出し始めた道下。" },
       { id: 2, title: "ビギナー級道下", minScore: 560, desc: "ゆっくりだが確実に打ち込める道下。" },
       { id: 3, title: "レギュラー道下", minScore: 960, desc: "日々の練習を欠かさない道下。" },
-      { id: 4, title: "ベテラン道下", minScore: 1440, desc: "休み時間のタイピング対決で一目置かれる存在。" },
+      { id: 4, title: "ベテラン道下", minScore: 1440, desc: "休み時間のタイプター対決で一目置かれる存在。" },
       { id: 5, title: "エキスパート道下", minScore: 2000, desc: "道下の思考速度と同等以上のスピードを誇る。" },
       { id: 6, title: "エリート級道下", minScore: 2700, desc: "鋼の精神で打ち続ける選ばれし道下。" },
       { id: 7, title: "マスター級道下", minScore: 3500, desc: "学校でも指折りの速さ。道下も嫉妬する。" },
@@ -1328,9 +1327,6 @@
       document.getElementById('soundToggleBtn').innerText = isSoundOn ? '🔊 音声' : '🔇 ミュート';
     }
 
-    // ==========================================
-    // ★ ひらがな音節ベースのスマート判定エンジン
-    // ==========================================
     const SYLLABLE_MAP = {
       "あ": ["a"], "い": ["i", "yi"], "う": ["u", "wu", "whu"], "え": ["e"], "お": ["o"],
       "か": ["ka", "ca"], "き": ["ki"], "く": ["ku", "cu", "qu"], "け": ["ke"], "こ": ["ko", "co"],
@@ -1763,7 +1759,6 @@
       let currentTok = gameState.hiraTokens[gameState.currentIndex];
       let trialSub = gameState.currentTypedSub + inputChar;
 
-      // 「ん」の特別ルール：N単体で即座に通さず、次が母音やN以外なら確定、NNやN'なら2文字目へ繋げる
       if (currentTok.hira === 'ん') {
         let nextTok = gameState.hiraTokens[gameState.currentIndex + 1];
         let needsMore = nextTok && ['あ','い','う','え','お','や','ゆ','よ','ん'].includes(nextTok.hira);
