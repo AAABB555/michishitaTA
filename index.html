@@ -440,6 +440,8 @@
       letter-spacing: 0.5px;
       width: 100%;
       text-align: center;
+      position: relative;
+      z-index: 5;
     }
 
     .word-roma-scroll-wrapper {
@@ -449,9 +451,10 @@
       justify-content: center;
       align-items: center;
       padding: 2px 10px;
+      position: relative;
+      z-index: 5;
     }
 
-    /* ★ 長い文は自動で折り返し（改行）、スクロールは発生しない設定 */
     .word-roma {
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Courier New", monospace;
       font-size: 18px;
@@ -478,6 +481,7 @@
       text-underline-offset: 4px;
     }
 
+    /* ★ 道下ポップアップ：透明度をなくしてくっきり表示し、z-index: 1 で文字の背後に配置 */
     .michishita-popup {
       position: absolute;
       right: 14px;
@@ -489,7 +493,7 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
       overflow: hidden;
       background: #ffffff;
-      z-index: 2;
+      z-index: 1;
       opacity: 1;
       transition: bottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       pointer-events: none;
@@ -1134,7 +1138,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V13';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V15';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1461,7 +1465,7 @@
         { k: "誰にも見せられない黒歴史ノートの存在", h: "だれにもみせられないくろれきしのーとのそんざい" },
         { k: "帰り道に買い食いしたアイスの甘い思い出", h: "かえりみちにかいぐいしたあいすのあまいおもいで" },
         { k: "テストの平均点を劇的に上げるための魔術", h: "てすとのへいきんてんをげきてきにあげるためのまじゅつ" },
-        { k: "文化祭の準備をサボってゲームセンターへ", h: "ぶんかさいのじゅんびをさぼってげーむせんたーへ" },
+        { k: "文化祭の準備をさぼってゲームセンターへ", h: "ぶんかさいのじゅんびをさぼってげーむせんたーへ" },
         { k: "先生に怒られている友達をよそ目に爆笑", h: "せんせいにおこられているともだちをよそめにばくしょう" },
         { k: "休み時間の10分間を永遠のように使いこなす", h: "やすみじかんのじゅっぷんかんをえいえんのようにつかいこなす" },
         { k: "ノートの端に描いたパラパラ漫画のクオリティ", h: "のーとのはしにえがいたぱらぱらまんがのくおりてぃ" },
@@ -1553,7 +1557,7 @@
       ]
     };
 
-    let currentDifficulty = 2;
+    let currentDifficulty = 0; // ★ 修正：最初は必ず「クソ簡単（0）」から始まるように変更
     let gameState = {
       isRunning: false,
       isRealtimeBattle: false,
@@ -2007,7 +2011,7 @@
     window.onload = function() {
       applyCustomImages();
       loadData();
-      applyBackgroundTheme(0);
+      selectDifficulty(0); // ★ 修正：起動時に確実に「クソ簡単」を選択状態にする
       initGlobalRankingSync();
     };
   </script>
