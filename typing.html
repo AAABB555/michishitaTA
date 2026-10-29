@@ -411,7 +411,7 @@
     .word-area {
       text-align: center;
       margin-bottom: 22px;
-      min-height: 145px;
+      min-height: 155px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -430,7 +430,7 @@
     }
 
     .word-kanji {
-      font-size: 26px;
+      font-size: 25px;
       font-weight: 900;
       color: #ffffff !important;
       text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0, 0, 0, 0.7);
@@ -440,29 +440,26 @@
       z-index: 5;
     }
 
+    /* ★ 長い文字が綺麗に自動で折り返されるように修正 */
     .word-roma-scroll-wrapper {
       width: 100%;
-      overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
-      scrollbar-width: none;
-      display: flex;
-      justify-content: center;
+      max-height: 90px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      word-break: break-all;
+      white-space: pre-wrap;
       z-index: 5;
       padding: 4px 10px;
-      scroll-behavior: smooth;
-    }
-    .word-roma-scroll-wrapper::-webkit-scrollbar {
-      display: none;
+      scrollbar-width: thin;
     }
 
     .word-roma {
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 800;
       letter-spacing: 1.5px;
-      display: inline-block;
-      white-space: nowrap;
+      display: inline;
+      line-height: 1.6;
     }
     .typed-char {
       color: #67e8f9 !important;
@@ -1343,85 +1340,85 @@
       document.getElementById('soundToggleBtn').innerText = isSoundOn ? '🔊 音声' : '🔇 ミュート';
     }
 
-    // ★ 難易度0：30個、難易度1：30個、難易度2〜6：各25個ずつに大増量！
+    // ★ 漢字とローマ字の対応を正確に同期させた単語リスト
     const WORD_DB = {
       0: [
-        { k: "道下", r: "mitisita" }, { k: "柳原", r: "yanagihara" }
+        { k: "道下", r: "michishita" }, { k: "柳原", r: "yanagihara" }
       ],
       1: [
-        { k: "道下遥人", r: "mitisitaharuto" }, { k: "あの時の僕", r: "anotokinoboku" },
-        { k: "文化祭", r: "bunkasai" }, { k: "消しゴム", r: "kesigomu" }, 
-        { k: "昼休み", r: "hiruyasumi" }, { k: "寝坊した道下", r: "nebousitamitisita" },
-        { k: "放課後の教室", r: "houkagonokyousitu" }, { k: "数学のテスト", r: "suugakunotesuto" },
+        { k: "道下遥人", r: "michishitaharuto" }, { k: "あの時の僕", r: "anotokinoboku" },
+        { k: "文化祭", r: "bunkasai" }, { k: "消しゴム", r: "keshigomu" }, 
+        { k: "昼休み", r: "hiruyasumi" }, { k: "寝坊した道下", r: "neboushitamichishita" },
+        { k: "放課後の教室", r: "houkagonokyoushitsu" }, { k: "数学のテスト", r: "suugakunotesuto" },
         { k: "赤点回避", r: "akatenkaihi" }, { k: "忘れ物", r: "wasuremono" },
-        { k: "購買のパン", r: "koubainopan" },{ k: "道下", r: "mitisita" }, 
-        { k: "僕", r: "boku" }, { k: "寿司", r: "susi" },
+        { k: "購買のパン", r: "koubainopan" }, { k: "道下", r: "michishita" }, 
+        { k: "僕", r: "boku" }, { k: "寿司", r: "sushi" },
         { k: "犬", r: "inu" }, { k: "猫", r: "neko" }, { k: "貝", r: "kai" },
         { k: "肉", r: "niku" }, { k: "麺", r: "men" }, { k: "猿", r: "saru" },
         { k: "鳥", r: "tori" }, { k: "霧", r: "kiri" }, { k: "嘘", r: "uso" },
-        { k: "缶", r: "kan" }, { k: "芯", r: "sin" }, { k: "冬", r: "huyu" },
-        { k: "線", r: "sen" }, { k: "水", r: "mizu" }, { k: "石", r: "isi" },
-        { k: "夢", r: "yume" }, { k: "上", r: "ue" }, { k: "下", r: "sita" },
-        { k: "道", r: "miti" }, { k: "秋", r: "aki" }, { k: "栗", r: "kuri" },
+        { k: "缶", r: "kan" }, { k: "芯", r: "shin" }, { k: "冬", r: "fuyu" },
+        { k: "線", r: "sen" }, { k: "水", r: "mizu" }, { k: "石", r: "ishi" },
+        { k: "夢", r: "yume" }, { k: "上", r: "ue" }, { k: "下", r: "shita" },
+        { k: "道", r: "michi" }, { k: "秋", r: "aki" }, { k: "栗", r: "kuri" },
         { k: "剣", r: "ken" }, { k: "丸", r: "maru" }, { k: "味噌", r: "miso" },
-        { k: "亀", r: "kame" }, { k: "春", r: "haru" }, { k: "夏", r: "natu" },
-        { k: "お菓子", r: "okasi" }, { k: "教科書忘れ常習犯", r: "kyoukasyowasurejousyuuhan" },
+        { k: "亀", r: "kame" }, { k: "春", r: "haru" }, { k: "夏", r: "natsu" },
+        { k: "お菓子", r: "okashi" }, { k: "教科書忘れ常習犯", r: "kyoukashowasurejoushuuhan" },
         { k: "窓際の一等席", r: "madogiwanoittouseki" }, { k: "居眠りの天才", r: "inemurinotensai" },
         { k: "校内放送", r: "kounaihousou" }, { k: "身体測定", r: "sintaisokutei" },
         { k: "体育の見学", r: "taiikunokengaku" }, { k: "雨の日", r: "amenohi" },
-        { k: "部活動", r: "bukatudou" }, { k: "席替え", r: "sekigae" },
-        { k: "隠し持ったスマホ", r: "kakusimottasumaho" }, { k: "職員室の呼び出し", r: "syokuinsitunoyobidasi" },
+        { k: "部活動", r: "bukatsudou" }, { k: "席替え", r: "sekigae" },
+        { k: "隠し持ったスマホ", r: "kakushimottasumaho" }, { k: "職員室の呼び出し", r: "shokuinsitsunoyobidashi" },
         { k: "テスト直前の焦り", r: "tesutotyokuzennoaseri" }, { k: "返却された答案", r: "henkyakusaretatouan" },
-        { k: "漢字テスト", r: "kanzitesuto" }, { k: "寝坊の朝", r: "nebounoasa" },
+        { k: "漢字テスト", r: "kanjitesuto" }, { k: "寝坊の朝", r: "nebounoasa" },
         { k: "早歩き", r: "hayaaruki" }, { k: "奇跡", r: "kiseki" }
       ],
       2: [
-        { k: "文化祭が楽しい道下", r: "bunkasaigatanosiimitisita" }, 
-        { k: "文化祭をサボる道下", r: "bunkasaiwosaborumitisita" },
-        { k: "公式道下アクリルスタンド", r: "kousikimitisitaakurirusutando" }, 
-        { k: "授業中にちぎった消しゴム", r: "zyugyoutyuunitigittakesigomu" },
-        { k: "廊下を走って先生に怒られる", r: "roukawohasittesenseiniokorareru" },
-        { k: "体育館の裏でサボる道下", r: "taiikukannouradesaborumitisita" },
-        { k: "誰もいない放課後の音楽室", r: "daremoinaihoukagonoongakusitu" },
+        { k: "文化祭が楽しい道下", r: "bunkasaigatanoshiimichishita" }, 
+        { k: "文化祭をサボる道下", r: "bunkasaiwosaborumichishita" },
+        { k: "公式道下アクリルスタンド", r: "kousikimichishitaakurirusutando" }, 
+        { k: "授業中にちぎった消しゴム", r: "jugyoutyuunitigittakeshigomu" },
+        { k: "廊下を走って先生に怒られる", r: "roukawohashittesenseiniokorareru" },
+        { k: "体育館の裏でサボる道下", r: "taiikukannouradesaborumichishita" },
+        { k: "誰もいない放課後の音楽室", r: "daremoinaihoukagonoongakushitsu" },
         { k: "放課後の教室で一人だけ居残る", r: "houkagonokyousitudehitoridakeinokoru" },
-        { k: "世界を揺るがす道下の寝ぐせ", r: "sekaiwoyurugasumitisitanoneguse" },
-        { k: "校長先生の長いお話", r: "koutyousenseinonagaiohanasi" },
-        { k: "購買の焼きそばパンにかける情熱", r: "koubainoyakisobapannikakerujounetu" },
-        { k: "見つかってしまった隠し漫画", r: "mitukattesimattakakusimanga" },
-        { k: "世界で一番可愛いのは？", r: "mitisita" },
-        { k: "放課後の夕日がやけに眩しい教室", r: "houkagonoyuuhigayakenimabusiikyousitu" },
-        { k: "忘れた宿題を休み時間に爆速で写す", r: "wasuretasyukudaiwoyasumijikannibakusokudeutusu" },
+        { k: "世界を揺るがす道下の寝ぐせ", r: "sekaiwoyurugasumichishitanoneguse" },
+        { k: "校長先生の長いお話", r: "koutyousenseinonagaiohanashi" },
+        { k: "購買の焼きそばパンにかける情熱", r: "koubainoyakisobapannikakerujounetsu" },
+        { k: "見つかってしまった隠し漫画", r: "mitukattesimattakakushimanga" },
+        { k: "世界で一番可愛いのは？", r: "michishita" },
+        { k: "放課後の夕日がやけに眩しい教室", r: "houkagonoyuuhigayakenimabusiikyoushitsu" },
+        { k: "忘れた宿題を休み時間に爆速で写す", r: "wasuretasyukudaiwoyasumijikannibakusokudeutsusu" },
         { k: "先生の名前をうっかり呼び間違える", r: "senseinonamaewoukkariyobimitigaeru" },
-        { k: "自転車のチェーンが盛大に外れる", r: "jitensyanothe-ngaseidainihazureru" },
+        { k: "自転車のチェーンが盛大に外れる", r: "jitensyanocheengaseidainihazureru" },
         { k: "全校生徒の前で派手に転ぶ大惨事", r: "zenkousetonomaedehadenitekoroudaizinzi" },
         { k: "気合を入れて臨んだテストで白紙連発", r: "kiaiwoiretenirondatesutodehakusirenpatu" },
         { k: "こっそり食べたお菓子の匂いで即バレ", r: "kossoritabetaokasinonioidesokubare" },
-        { k: "雨男の道下が本気を出した遠足の日", r: "ameotokonomitisitagahonkiwodasitaensokunohi" },
-        { k: "秘密の地下室を探す妄想にふける授業中", r: "himitunotikasituwosagasumousounifukeruzyugyoutyuu" },
-        { k: "教科書の端っこに描き殴った謎のモンスター", r: "kyoukasyonohazikkonikakinaguttanazonomonsuta-" },
+        { k: "雨男の道下が本気を出した遠足の日", r: "ameotokonomichisitagahonkiwodasitaensokunohi" },
+        { k: "秘密の地下室を探す妄想にふける授業中", r: "himitunotikasituwosagasumousounifukerujugyoutyuu" },
+        { k: "教科書の端っこに描き殴った謎のモンスター", r: "kyoukasyonohazikkonikakinaguttanazonomonsutaa" },
         { k: "自由研究で謎の物体を錬成して大爆発", r: "jiyuukenkyuudenazonobuttaiworenseisitedaibakuhatu" },
         { k: "友達の財布を忘れて絶望する修学旅行", r: "tomodachinosaiwowasuretezetubousurusyuugakuryokou" }
       ],
       3: [
         { k: "お前の方が借り多いけどありがとう", r: "omaenohougakarioikedoarigatou" },
-        { k: "道下に出来ることなら誰でも出来る", r: "mitisitanidekirukotonaradaredemodekiru" },
+        { k: "道下に出来ることなら誰でも出来る", r: "michishitanidekirukotonaradaredemodekiru" },
         { k: "忘れ物を友達に全力で借りる", r: "wasuremonowotomodachinizenryokudekariru" },
         { k: "放課後のチャイムが鳴るまでに帰る", r: "houkagonotyaimugararumadenikaeru" },
         { k: "黒板の文字が絶妙に見えない指定席", r: "kokubannomozigazetumyounimienasiteiseki" },
         { k: "提出期限の直前に本気出すスタイル", r: "teisyutukigennnotyokuzunihonkidasusutairu" },
-        { k: "伝説のサボり王道下遥人の伝説の足跡", r: "densetunosaborioumitisitaharutonodensetuunowasiato" },
-        { k: "先生の目を完全に盗んでスマホをいじる技", r: "sensenometowokanzeninusundesumahowoiijiruwaza" },
+        { k: "伝説のサボり王道下遥人の伝説の足跡", r: "densetunosaborioumichishitaharutonodensetuunowasiato" },
+        { k: "先生の目を完全に盗んでスマホをいじる技", r: "senseinometowokanzeninusundesumahowoiijiruwaza" },
         { k: "終わらない宿題の山に涙を流す真夜中", r: "owaranasisyukudainoyaminamidaownagasumayonaka" },
         { k: "誰もいないプールに忍び込む青春の計画", r: "daremoinaipuuruninosinikomuseisyunnokaikaku" },
         { k: "廊下ですれ違う時に謎のアイコンタクト", r: "roukadesurechugutokinonazoaikoontakuto" },
-        { k: "突然の抜き打ちテストに魂が抜ける教室", r: "tuzennnonukiutitesutonitamasiganukerukyousitu" },
-        { k: "購買の最後の一品を華麗にゲットする瞬間", r: "koubainosaigonoippinwo-kareinigettosusyukan" },
+        { k: "突然の抜き打ちテストに魂が抜ける教室", r: "tuzennnonukiutitesutonitamasiganukerukyoushitsu" },
+        { k: "購買の最後の一品を華麗にゲットする瞬間", r: "koubainosaigonoippinwokareinigettosusyukan" },
         { k: "教科書を忘れたのに忘れてないフリをする", r: "kyoukasowasuretanoniwasuretenaifuriosuru" },
         { k: "誰にも見せられない黒歴史ノートの存在", r: "darenimomiserarenainokorekisinootonosonzai" },
         { k: "帰り道に買い食いしたアイスの甘い思い出", r: "kaerimidinikaiguisitaaisunoamaiomoude" },
         { k: "テストの平均点を劇的に上げるための魔術", r: "tesutonokeigintenowgekitekiniagerutamonomazutu" },
-        { k: "文化祭の準備をサボってゲームセンターへ", r: "bunkasainozyunbiwosabottegeemusentahe" },
-        { k: "先生に怒られている友達をよそ目に爆笑", r: "senseniokarerumtodachiwoyosomebakusyou" },
+        { k: "文化祭の準備をサボってゲームセンターへ", r: "bunkasainozyunbiwosabottegeemusentaahe" },
+        { k: "先生に怒られている友達をよそ目に爆笑", r: "senseiokarerutomodachiwoyosomebakusyou" },
         { k: "休み時間の10分間を永遠のように使いこなす", r: "yasumijikannojyuupunkannowieinoyoniwutaikonasu" },
         { k: "ノートの端に描いたパラパラ漫画のクオリティ", r: "nootonohaniwaitaparaparamanganokuoriti" },
         { k: "謎の自信満々で挑んだテストの悲惨な結末", r: "nazonojisinmammadiondatesutonohisannnaketumatu" },
@@ -1430,82 +1427,82 @@
         { k: "雨上がりの校庭の水たまりに突撃する勇者", r: "ameagarinokouteinomitutamarinitotugisuryuysya" }
       ],
       4: [
-        { k: "道下遥人特設ファンクラブ公式サイト開設記念セール", r: "mitisitaharutotokusatufankurabukousikisaitokaisakkinen" },
+        { k: "道下遥人特設ファンクラブ公式サイト開設記念セール", r: "michishitaharutotokusatufankurabukousikisaitokaisakkinen" },
         { k: "全体的に状態が悪い文化祭着用サイン入りシャツ", r: "zentai-tekinizyoutaigawaruibunkasaityakuyousain-irisyatu" },
         { k: "テスト直前に友達のノートを爆速でコピーする", r: "tesutotyokuzanitomodachinootowobakusokudekopisuru" },
         { k: "消しゴムを限界まで細かくちぎり続ける職人の技", r: "kesigomuwozenkaimademakakutugiritudukusyokuninnowaza" },
-        { k: "絶対に誰も解けない難問奇問に挑む道下遥人の休日", r: "zettainidaremotokenainamonkimonniidomumitisitaharutonokyuuzitu" },
+        { k: "絶対に誰も解けない難問奇問に挑む道下遥人の休日", r: "zettainidaremotokenainamonkimonniidomumichishitaharutonokyuuzitu" },
         { k: "誰も気付かないうちに教室の席が入れ替わっている怪奇現象", r: "daremokizukanaiutiinyousitusekigairekawatteirukaikigensyou" },
         { k: "放課後の部室の奥から聞こえてくる謎のうめき声の正体", r: "houkagonobusitunoookurakikoetekuronazonoumekigoinosyoutai" },
         { k: "テスト範囲を全く間違えて覚えていたときの絶望感と衝撃", r: "tesutohaniwomattakumatigaeteoboeteitatokinnozetuboukanwosyogeki" },
         { k: "先生の怒りを華麗にかわして一目散に逃げ出すサバイバル技術", r: "sensenokariwocareinikawasitehitomokusaninigedasusabaibarugizyutu" },
-        { k: "授業中に盛大にいびきをかいてクラス全員の注目を浴びる夜", r: "zyugyoutyuuseidainiibikiwokaitekuraseizeninnotyuumokuwabiruyoru" },
-        { k: "隠し持っていたお菓子が先生に見つかり没収される悲劇の瞬間", r: "kakusimotteitaokasigasensenimitukaribosshyuusareruhigekinisyukan" },
+        { k: "授業中に盛大にいびきをかいてクラス全員の注目を浴びる夜", r: "jugyoutyuuseidainiibikiwokaitekuraseizeninnotyuumokuwabiruyoru" },
+        { k: "隠し持っていたお菓子が先生に見つかり没収される悲劇の瞬間", r: "kakushimotteitaokasigasensenimitukaribosshyuusareruhigekinisyukan" },
         { k: "数学の証明問題でなぜか最終的に宇宙の真理にたどり着く奇跡", r: "suugakunosyomeimondaidenazakaisyuutekiniutyuunosinrinitadoritukukiseki" },
-        { k: "冷房が効きすぎた教室で凍えながら夏の暑さを懐かしむ道下", r: "reibougakikisugitakyousitudekogenagaranatunoatusaowonakamusumitisita" },
+        { k: "冷房が効きすぎた教室で凍えながら夏の暑さを懐かしむ道下", r: "reibougakikisugitakyousitudekogenagaranatunoatusaowonakamusumichishita" },
         { k: "友達との会話中にうっかり変な声が裏返ってしまい気まずい空気", r: "tomodachinotoniwaatyuuoukkarihennakogewouragaettosimaikimazuikuuki" },
         { k: "放課後の買い食いがバレて生活指導の先生に直行するお約束の道", r: "houkagonokaiguigabareteiseakatusidounosenseniitokusuruoyakusokunomiti" },
         { k: "テスト前に友達と誓い合った絶対に赤点を取らないという尊い約束", r: "tesutomaenotomodachitotikaattazettainiakatenwotoranaituiotutoinyakusoku" },
-        { k: "誰もいない廊下で一人だけ華麗なステップを踏みながら移動する", r: "daremoinairoukadehitoridakekareinnsuteppuwofuminagaraidousuru" },
-        { k: "世界を救う鍵がなぜか道下の筆箱の奥底に眠っているという設定", r: "sekaiwosukuukaginanazemitisitanofudebakoonookusokoninemutteirutuisettei" },
+        { k: "誰もいない廊下で一人だけ華麗なステップを踏みながら移動する", r: "daremoinairoukadehitoridakekareinsuteppuwofuminagaraidousuru" },
+        { k: "世界を救う鍵がなぜか道下の筆箱の奥底に眠っているという設定", r: "sekaiwosukuukaginanazemichisitanofudebakoonookusokoninemutteirutuisettei" },
         { k: "漢字テストの直前1分間で全力を出して奇跡的に合格をもぎ取る技", r: "kanjitesutotyokuzunjuppunkandezenryokuwohasitekisiketikinigoukakuwomogitoruwaza" },
         { k: "休み時間に友達と大声でプロレスごっこをして怒られる男子の日常", r: "yasumijikanintomodachioogedepuroresugokkowositeokarerudansinohiniciyou" },
         { k: "教科書の偉人の写真に全てヒゲを書き込んで歴史の教科書を汚す", r: "kyoukasanoizinonosasinisubetehigewokakikondenrekisinokyoukasowokotosu" },
         { k: "給食のプリンをめぐってじゃんけん勝負で激しく散る男たちの友情", r: "kyuuyusyokunopurinwomeguttejankenshoubudehakisikusirudotachinoyuujou" },
         { k: "学校の七不思議を一人で検証しに行って見事に怖くなって泣く夜", r: "gakkounanafusigiwohitoridekensyousiinitemigotokowakunatenakuyoru" },
         { k: "テスト用紙の名前書き忘れて絶望する冷や汗が止まらない瞬間の絶叫", r: "tesutoyousinonamaewasuretezetubousuruhiyasegatomaranaisyuukanonozekkyou" },
-        { k: "放課後の教室で一人だけ居残り課題に立ち向かう孤高の道下遥人の姿", r: "houkagonokyousitudehitoridakeinokorikadainitatimukaukokounomitisitaharutonosugata" }
+        { k: "放課後の教室で一人だけ居残り課題に立ち向かう孤高の道下遥人の姿", r: "houkagonokyousitudehitoridakeinokorikadainitatimukaukokounomichishitaharutonosugata" }
       ],
       5: [
-        { k: "道下の集中力は完全に散漫になっており救いようがない", r: "mitisitanosyuutyuuryokuhakanzennisanman-ninatteorisukuiyouganai" },
-        { k: "誰もいない放課後の音楽室で謎のダンスを踊る", r: "daremoinaihoukagonoongakusitudenazonodansuwoodoru" },
-        { k: "教室の真ん中で転んで宇宙の真理を見つめる道下遥人", r: "kyousitunomanakadetenondeutyuunosinriwomitumerumitisitaharuto" },
+        { k: "道下の集中力は完全に散漫になっており救いようがない", r: "michishitanosyuutyuuryokuhakanzennisanman-ninatteorisukuiyouganai" },
+        { k: "誰もいない放課後の音楽室で謎のダンスを踊る", r: "daremoinaihoukagonoongakushitsudenazonodansuwoodoru" },
+        { k: "教室の真ん中で転んで宇宙の真理を見つめる道下遥人", r: "kyousitunomanakadetenondeutyuunosinriwomitumerumichishitaharuto" },
         { k: "テスト用紙の裏に描いた巨大なドラゴンが動き出す夜", r: "tesutoyousinouraniwaitakyodainadoragongawokisasyuyoru" },
         { k: "学校の階段を駆け上がっていたはずがなぜか異世界に迷い込む", r: "gakkoukaidanwokakeagatteitahazugananazemiseakainimayoikomu" },
-        { k: "道下の圧倒的な怠け癖が世界の歴史の歯車を狂わせる瞬間", r: "mitisitanioattoutekinanamakegusigasekainorekisinohagurumaoworuwaserusyukan" },
+        { k: "道下の圧倒的な怠け癖が世界の歴史の歯車を狂わせる瞬間", r: "michisitanioattoutekinanamakegusigasekainorekisinohagurumaoworuwaserusyukan" },
         { k: "放課後の誰もいない教室で自分の消しゴムと会話を始める奇行", r: "houkagonodaremoinaiyousitudejibunkesigomutokiowohajimerukikou" },
-        { k: "数学の数式がすべて猫の顔に見えてくる幻覚に襲われる授業中", r: "suugakunosuusikigasubetenekokaonimietekurugenwakuniosowareruzyugyoutyuu" },
-        { k: "世界平和のために今日もうどんを食べる道下遥人の壮大な使命", r: "sekaiheiwanotamenikyuumoudonwostreamumitisitaharutonosoudainasimei" },
-        { k: "教科書の全ての文字が道下という漢字に置き換わる恐怖の現象", r: "kyoukasasubetemozigamitisitatoiuwkanjiniokikawaruukyoufusogensyou" },
+        { k: "数学の数式がすべて猫の顔に見えてくる幻覚に襲われる授業中", r: "suugakunosuusikigasubetenekokaonimietekurugenwakuniosowarerujugyoutyuu" },
+        { k: "世界平和のために今日もうどんを食べる道下遥人の壮大な使命", r: "sekaiheiwanotamenikyuumoudonwostreamumichishitaharutonosoudainasimei" },
+        { k: "教科書の全ての文字が道下という漢字に置き換わる恐怖の現象", r: "kyoukasasubetemozigamichishitatoiwkanjiniokikawaruukyoufusogensyou" },
         { k: "窓の外を飛んでいるドラゴンと目を合わせて無言でうなずく授業", r: "madosotonotondeirudoragontomeowasasetemugondeunazukuzyugyou" },
         { k: "消しゴムを限界まで削りすぎて消しゴムの概念を消失させる男", r: "kesigomuwozenkaimadekezurisugitekesigomunogainewosyositsusaseruotoko" },
-        { k: "放課後のチャイムが鳴った瞬間に時空が歪んで過去に戻る教室", r: "houkagonotyaimugaranattasyukandizikuugayuzandekakonimodorukyousitu" },
+        { k: "放課後のチャイムが鳴った瞬間に時空が歪んで過去に戻る教室", r: "houkagonotyaimugaranattasyukandizikuugayuzandekakonimodorukyoushitsu" },
         { k: "自分の名前を3回連続で書き忘れてテストの点数が完全になくなる", r: "jibunnonamaewosankairenzokudewakasiwasuretesutotennsuugakanzenininaru" },
         { k: "宇宙から飛んできた謎の隕石を避けて見事におにぎりを守り抜く", r: "utyuukuratondekitanazonoinsekiwosaketemigotonioonigiriwomamorinuku" },
-        { k: "道下遥人という存在そのものが学校の最大の七不思議であるという噂", r: "mitisitaniharutotoiusonzaisonomonogagakkounisaidounanafusigidearutoiuusa" },
-        { k: "世界を揺るがす大事件の裏でこっそり給食のプリンを狙う道下", r: "sekaiwoyurugasudaijikennnouradekossorigyuusyokunopurinwoneruumitisita" },
+        { k: "道下遥人という存在そのものが学校の最大の七不思議であるという噂", r: "michishitaharutotoiusonzaisonomonogagakkounisaidounanafusigidearutoiuusa" },
+        { k: "世界を揺るがす大事件の裏でこっそり給食のプリンを狙う道下", r: "sekaiwoyurugasudaijikennnouradekossorigyuusyokunopurinwoneruumichisita" },
         { k: "あまりの睡魔に襲われて立ったまま白目を剥いて寝る神業の授業", r: "amarinosuimaniniosowaretetattamamasisirokumewomuitinerukamigewozyugyou" },
         { k: "放課後の校庭で謎の儀式を執り行う不審な道下ファンの集団", r: "houkagonokouteidenazonoigisikiwotorionaufusinnnamitisitafannosyudan" },
         { k: "自分のポケットから無限に消しゴムのカスが出てくる恐怖の呪い", r: "jibunnnopokettokaramugenrikesigomukasugadetekurukyoufunonoroi" },
-        { k: "先生の怒り声がスローモーションで聞こえてくる異次元の空間", r: "sensenokarigoeasuroomoosondekikoetekuruijigennnokuukan" },
+        { k: "先生の怒り声がスローモーションで聞こえてくる異ジゲンの空間", r: "sensenokarigoeasuroomoosondekikoetekuruijigennnokuukan" },
         { k: "テストの解答欄にひたすら猫のイラストを描いて伝説を残す男", r: "tesutokaitouranihitasuranekonoirasutowokaitedensetuwonokosuotoko" },
-        { k: "道下の放つ謎のオーラによって周囲の電子機器がすべて誤作動する", r: "mitisitanihanatunazooraaniyoritesyuuridenshikikitigasubetuwosadousuru" },
+        { k: "道下の放つ謎のオーラによって周囲の電子機器がすべて誤作動する", r: "michisitanihanatunazooraaniyoritesyuuridenshikikitigasubetuwosadousuru" },
         { k: "教室の天井から突然降ってきた謎のメモ用紙に書かれていた秘密", r: "kyousitutenzyoukratuzennfuttakitanazonmemoyousinikakareteitahimitu" },
-        { k: "すべてを諦めて窓の外の青空に溶け込んでいこうとする授業中", r: "subetewoakametemadosotonoaozoranitokekomondeikoutosuruzyugyoutyuu" }
+        { k: "すべてを諦めて窓の外の青空に溶け込んでいこうとする授業中", r: "subetewoakametemadosotonoaozoranitokekomondeikoutosurujugyoutyuu" }
       ],
       6: [
-        { k: "道下に出来ることなら誰でも出来ると思うなよ革命はここから始まるのだ", r: "mitisitanidekirukotonaradaredemodekirutoomounayokakumeihakokokarahazimaronoda" },
-        { k: "世界を破壊し尽くす道下遥人の究極のタイピング奥義を今ここに解放する", r: "sekaiwohakaisikusumitisitaharutonokyuukyokunotaipingouuiwoimakokonikaihousuru" },
+        { k: "道下に出来ることなら誰でも出来ると思うなよ革命はここから始まるのだ", r: "michishitanidekirukotonaradaredemodekirutoomounayokakumeihakokokarahazimaronoda" },
+        { k: "世界を破壊し尽くす道下遥人の究極のタイピング奥義を今ここに解放する", r: "sekaiwohakaisikusumichishitaharutonokyuukyokunotaipingouuiwoimakokonikaihousuru" },
         { k: "全ての秩序を完全に粉砕して道下ファンクラブの王国を築き上げる野望", r: "subetenotituxuowokanzenifunsuisitemitisitafankurabunououkokuwookizukiageruyabou" },
-        { k: "無限の彼方へと飛び立つ道下遥人と一緒に新しい宇宙の歴史を創り出す", r: "mugenonakatavetobitadumitisitaharutotoissyoniatarasiiutyuunorekisiwosukuridasu" },
+        { k: "無限の彼方へと飛び立つ道下遥人と一緒に新しい宇宙の歴史を創り出す", r: "mugenonakatavetobitadumichishitaharutotoissyoniatarasiiutyuunorekisiwosukuridasu" },
         { k: "圧倒的なスピードでキーボードを叩き割り次元の壁を突破する究極の戦士", r: "attoutekinisupuudodekiiboodowotatakiwarizijinnokabewotoppasurukyuukyokunotensi" },
         { k: "これぞ人類の到達点にして道下信仰の最終形態である伝説のタイピング神話", r: "korezojinruinoutoutatutenisitemitisitashinkounosaijuukeitaiarudensetunotaipingsinwa" },
-        { k: "どんな困難が立ち塞がろうとも道下と一緒に明日への扉をこじ開けるのだ", r: "donnkonnaningatatisugaroutomomitisitatoissyoniasiaetnotobirawohoziakerunoda" },
-        { k: "世界の真理を解き明かす鍵はすべて道下遥人のポケットの中に隠されている", r: "sekainisinriwotokiamasukagiwasubetemitisitaharutonopokettinonokusakareteiru" },
-        { k: "沈黙を破り立ち上がった道下ファンたちが起こす歴史的大革命の幕開け", r: "tinmokuwoyaburitatiagattamitisitafantatigiokosurekisekitidaiakakumenomakuake" },
-        { k: "予測不能の未来に向かって光の速さで駆け抜ける最強無敵の道下伝説", r: "yosokuhunounomiraimunikattehikarinosauadodekakenuerusaikyoumutekinomitisitadensetu" },
+        { k: "どんな困難が立ち塞がろうとも道下と一緒に明日への扉をこじ開けるのだ", r: "donnkonnaningatatisugaroutomomichishitatoissyoniasiaetnotobirawohoziakerunoda" },
+        { k: "世界の真理を解き明かす鍵はすべて道下遥人のポケットの中に隠されている", r: "sekainisinriwotokiamasukagiwasubetemichishitaharutonopokettinonokusakareteiru" },
+        { k: "沈黙を破り立ち上がった道下ファンたちが起こす歴史otopicの幕開け", r: "tinmokuwoyaburitatiagattamitisitafantatigiokosurekiseteikimakuake" },
+        { k: "予測不能の未来に向かって光の速さで駆け抜ける最強無敵の道下伝説", r: "yosokuhunounomiraimunikattehikarinosauadodekakenuerusaikyoumutekinomichisitadensetu" },
         { k: "絶望の淵から這い上がってきた者だけが見ることのできる頂の絶景", r: "zetubounohutigarahaiagattatamonodakegamirukotonodekiruitadakinosekkei" },
         { k: "すべての常識をひっくり返し新しい時代の扉をこじ開ける最強の挑戦者", r: "subetenojoushikiwohikkurikaesiatarusiijidainotobirawohoziakerusaikyounotysensya" },
-        { k: "終わらない夜を駆け抜けて道下が掴み取った栄光のゴールデンステート", r: "owaranaiyoruwohakenuketemitisitagatukamitottaeikounogoorudensteeto" },
-        { k: "神様も嫉妬するほどの圧倒的オーラをまといながら突き進む道下遥人", r: "kamisamamoshittosuruhodonoattoutekiourwomatoinagaratukisusumumitisitaharuto" },
-        { k: "歴史の教科書の一番最初に載るべき男の名前はいつだって道下遥人", r: "rekisinokkyoukasainoibansaisoinorubekiotokononamaiwaitsudattemitisitaharuto" },
+        { k: "終わらない夜を駆け抜けて道下が掴み取った栄光のゴールデンステート", r: "owaranaiyoruwohakenuketemichishitagatukamitottaeikounogoorudensteeto" },
+        { k: "神様も嫉妬するほどの圧倒的オーラをまといながら突き進む道下遥人", r: "kamisamamoshittosuruhodonoattoutekiourwomatoinagaratukisusumumichishitaharuto" },
+        { k: "歴史の教科書の一番最初に載るべき男の名前はいつだって道下遥人", r: "rekisinokkyoukasainoibansaisoinorubekiotokononamaiwaitsudattemichishitaharuto" },
         { k: "一瞬の隙も許されない極限の戦場で華麗に舞い踊る伝説のタイパー", r: "issyunnosukimoyurusarenaikyokugenonsenzyoudeskareinimaiodurudensetunotaipaa" },
         { k: "宇宙の果てまで響き渡れ道下ファンクラブ公式特設の栄光のファンファーレ", r: "utyuunohatemadehibikiwataremitisitafankurabukousikitusokunoeikounofanfaare" },
-        { k: "誰もが不可能だと言った壁を軽々と飛び越えていく不死身の道下軍団", r: "daremogahukanoudaとittaerukaryoukarutotobikoetu-fuziminomitigitugundan" },
+        { k: "誰もが不可能だと言った壁を軽々と飛び越えていく不死身の道下軍団", r: "daremogahukanoudaittaerukaryoukarutotobikoetuhuziminomitigitugundan" },
         { k: "静まり返った深夜の教室で一人だけ覚醒して世界を書き換える男", r: "sizumarikaettasinyanokyousitudehitoridakekakusisteisekiaiwkakikaeruotoko" },
-        { k: "未来の教科書に必ず載るであろう伝説のタイピングマスター道下遥人", r: "mirainokyoukasinikanarunorudearoudensetunotaipingumasutaamitisitaharuto" },
+        { k: "未来の教科書に必ず載るであろう伝説のタイピングマスター道下遥人", r: "mirainokyoukasinikanarunorudearoudensetunotaipingumasutaamichishitaharuto" },
         { k: "全てを出し切った者だけが辿り着ける夢の向こう側のパラダイス", r: "subetewodasikittamonodakegatadoritukuyumenomukougowanoparadaisu" },
-        { k: "道下の名前を叫びながらキーボードを叩き続ける熱い魂の夜明け前", r: "mitisitanonamaiwosakebinagarakiiboodowotatakitudukuruatuinitamasinoyoakemae" },
+        { k: "道下の名前を叫びながらキーボードを叩き続ける熱い魂の夜明け前", r: "michisitanonamaiwosakebinagarakiiboodowotatakitudukuruatuinitamasinoyoakemae" },
         { k: "限界のその先にある未知の領域へと足を踏み入れる勇者たちの聖戦", r: "genkainosonosakianiurumisinoiryouikiwetowofumiiruyuusatatinoseisen" },
         { k: "歴史の歯車が大きく音を立てて逆回転し始める革命前夜の静けさ", r: "rekisinohagurumagaookikuotonotateteogyakukaitenisihajimerukakumeizenyanosizukesa" },
         { k: "これぞ道下ファンクラブが誇る究極にして至高のタイピングエンターテインメント", r: "korezomitisitafankurabugahokurukyuukyokunisiteisikounotaipingentaateinmento" }
@@ -1634,7 +1631,7 @@
       document.getElementById('michishitaPopup').classList.remove('active');
       document.getElementById('displayKanji').innerText = '道下タイピング';
       document.getElementById('displayRomaContainer').innerHTML = '<span class="untyped-char">スタートボタンを押してね (または SPACE)</span>';
-      document.getElementById('romaScrollWrapper').scrollLeft = 0;
+      document.getElementById('romaScrollWrapper').scrollTop = 0;
       document.getElementById('gameTimer').innerText = '60';
       document.getElementById('gameScore').innerText = '0';
       document.getElementById('battleTugBar').style.display = 'none';
@@ -1676,15 +1673,6 @@
 
       const container = document.getElementById('displayRomaContainer');
       container.innerHTML = `<span class="typed-char">${typed}</span><span class="untyped-char current-char" id="activeCharElement">${currentChar}</span><span class="untyped-char">${untypedRest}</span>`;
-
-      requestAnimationFrame(() => {
-        const activeEl = document.getElementById('activeCharElement');
-        const wrapper = document.getElementById('romaScrollWrapper');
-        if (activeEl && wrapper) {
-          const targetLeft = activeEl.offsetLeft - (wrapper.clientWidth / 2) + (activeEl.clientWidth / 2);
-          wrapper.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
-        }
-      });
     }
 
     function updateGameStatsUI() {
