@@ -1133,7 +1133,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V6';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V7';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1512,9 +1512,8 @@
       tugBalance: 0
     };
 
-    // ★ 複数のローマ字表記（SI, TI, ZI, NNなど）を安全にマッピングする処理
+    // ★ 複数パターンのローマ字（SI, TI, ZI, NNなど）を安全にマッピングする処理
     function buildAcceptablePatterns(romaStr) {
-      // 基本形から「nn」を「n'」や単独「n」にも対応できるように置換ベースを作る
       let base = romaStr;
       
       const replacements = {
