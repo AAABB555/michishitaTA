@@ -408,7 +408,7 @@
       object-fit: cover;
     }
 
-    /* ★ 完全に中央寄せ（テキスト中央揃え）した表示エリア */
+    /* ★ 完全に中央寄せを維持する表示エリア */
     .word-area {
       text-align: center;
       margin-bottom: 22px;
@@ -444,7 +444,6 @@
       width: 100%;
     }
 
-    /* ★ 中央揃え・完全固定のローマ字コンテナ */
     .word-roma-scroll-wrapper {
       width: 100%;
       overflow: hidden;
@@ -1134,7 +1133,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V4';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V5';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1488,7 +1487,7 @@
         { k: "静まり返った深夜の教室で一人だけ覚醒して世界を書き換える男", r: "sizumarikaettasinyanokyousitudehitoridakekakusisteisekiaiwkakikaeruotoko" },
         { k: "未来の教科書に必ず載るであろう伝説のタイピングマスター道下遥人", r: "mirainokyoukasinikanarunorudearoudensetunotaipingumasutaamichishitaharuto" },
         { k: "全てを出し切った者だけが辿り着ける夢の向こう側のパラダイス", r: "subetewodasikittamonodakegatadoritukuyumenomukougowanoparadaisu" },
-        { k: "道下の名前を叫びながらキーボードを叩き続ける熱い魂の夜明け前", r: "michisitanonamaiwosakebinagarakiiboodowotatakitudukuruatuinitamasinoyoakemae" },
+        { k: "道下の名前を叫びながらキーボードを叩き続ける熱い魂の夜明け前", r: "michishitanonamaiwosakebinagarakiiboodowotatakitudukuruatuinitamasinoyoakemae" },
         { k: "限界のその先にある未知の領域へと足を踏み入れる勇者たちの聖戦", r: "genkainosonosakianiurumisinoiryouikiwetowofumiiruyuusatatinoseisen" },
         { k: "歴史の歯車が大きく音を立てて逆回転し始める革命前夜の静けさ", r: "rekisinohagurumagaookikuotonotateteogyakukaitenisihajimerukakumeizenyanosizukesa" },
         { k: "これぞ道下ファンクラブが誇る究極にして至高のタイピングエンターテインメント", r: "korezomitisitafankurabugahokurukyuukyokunisiteisikounotaipingentaateinmento" }
@@ -1506,39 +1505,43 @@
       totalStrokes: 0,
       missCount: 0,
       currentWord: null,
+      activeRomaString: "",
       typedIndex: 0,
-      currentAcceptablePatterns: [],
-      matchedPatternLength: 0,
       rivalName: "対戦相手",
       tugBalance: 0
     };
 
-    // ★ 複数パターンのローマ字（SI/SHIなど）に対応する変換テーブル
-    const ROMAZI_VARIANTS = {
-      "shi": ["shi", "si"],
-      "chi": ["chi", "ti"],
-      "tsu": ["tsu", "tu"],
-      "ji": ["ji", "zi"],
-      "sha": ["sha", "sya"],
-      "shu": ["shu", "syu"],
-      "sho": ["sho", "syo"],
-      "cha": ["cha", "cya", "tya"],
-      "chu": ["chu", "cyu", "tyu"],
-      "cho": ["cho", "cyo", "tyo"],
-      "ja": ["ja", "zya"],
-      "ju": ["ju", "zyu"],
-      "jo": ["jo", "zyo"],
-      "fa": ["fa", "fua"],
-      "fi": ["fi", "fui"],
-      "fe": ["fe", "fue"],
-      "fo": ["fo", "fuo"],
-      "wi": ["wi", "whi"],
-      "we": ["we", "whe"],
-      "wo": ["wo", "who"]
-    };
-
+    // ★ 代用入力（SI, TI, ZI, NNなど）を柔軟に全パターン生成する関数
     function generateVariants(romaStr) {
-      let patterns = [romaStr];
+      // まず「nn」を「n'」や単独「n」でもいけるように展開準備
+      let expanded = romaStr.replace(/nn/g, "n'");
+      let patterns = [romaStr, expanded];
+      
+      const ROMAZI_VARIANTS = {
+        "shi": ["shi", "si"],
+        "chi": ["chi", "ti"],
+        "tsu": ["tsu", "tu"],
+        "ji": ["ji", "zi"],
+        "sha": ["sha", "sya"],
+        "shu": ["shu", "syu"],
+        "sho": ["sho", "syo"],
+        "cha": ["cha", "cya", "tya"],
+        "chu": ["chu", "cyu", "tyu"],
+        "cho": ["cho", "cyo", "tyo"],
+        "ja": ["ja", "zya"],
+        "ju": ["ju", "zyu"],
+        "jo": ["jo", "zyo"],
+        "fu": ["fu", "hu"],
+        "fa": ["fa", "fua"],
+        "fi": ["fi", "fui"],
+        "fe": ["fe", "fue"],
+        "fo": ["fo", "fuo"],
+        "wi": ["wi", "whi"],
+        "we": ["we", "whe"],
+        "wo": ["wo", "who"],
+        "n'": ["n'", "nn", "n"]
+      };
+
       for (let key in ROMAZI_VARIANTS) {
         let newPatterns = [];
         let alts = ROMAZI_VARIANTS[key];
@@ -1683,8 +1686,7 @@
       const selected = list[Math.floor(Math.random() * list.length)];
       gameState.currentWord = selected;
       gameState.typedIndex = 0;
-      gameState.matchedPatternLength = 0;
-      gameState.currentAcceptablePatterns = generateVariants(selected.r);
+      gameState.activeRomaString = selected.r; // 初期表示はデフォルトのローマ字
 
       const popup = document.getElementById('michishitaPopup');
       if (selected.k.includes("道下")) popup.classList.add('active');
@@ -1696,7 +1698,7 @@
     function updatePromptDisplay() {
       if (!gameState.currentWord) return;
       document.getElementById('displayKanji').innerText = gameState.currentWord.k;
-      const full = gameState.currentWord.r;
+      const full = gameState.activeRomaString;
       const typed = full.substring(0, gameState.typedIndex);
       const currentChar = full[gameState.typedIndex] || '';
       const untypedRest = full.substring(gameState.typedIndex + 1);
@@ -1716,21 +1718,27 @@
       const inputChar = e.data ? e.data.toLowerCase() : hiddenInput.value.slice(-1).toLowerCase();
       hiddenInput.value = '';
 
-      // 現在の入力済み位置から次の1文字が進めるパターンが存在するか確認
-      let subTyped = gameState.currentWord.r.substring(0, gameState.typedIndex) + inputChar;
-      let matchFound = gameState.currentAcceptablePatterns.some(p => p.startsWith(subTyped));
+      // 現在の入力状態で一致する候補パターンをすべて取得
+      let currentTypedPart = gameState.activeRomaString.substring(0, gameState.typedIndex);
+      let targetSubTyped = currentTypedPart + inputChar;
+      
+      let allVariants = generateVariants(gameState.currentWord.r);
+      let matchedPattern = allVariants.find(p => p.startsWith(targetSubTyped));
 
-      if (matchFound) {
+      if (matchedPattern) {
         soundType();
+        gameState.activeRomaString = matchedPattern; // ユーザーが打った代用表記（SIやNNなど）に画面表示を自動書き換え！
         gameState.typedIndex++;
         gameState.totalStrokes++;
         gameState.score += 10;
+        
         if (gameState.isRealtimeBattle && firebaseRoomRef) {
           firebaseRoomRef.child('players/' + myPlayerKey + '/score').set(gameState.score);
         }
-        if (gameState.typedIndex >= gameState.currentWord.r.length) {
+        
+        if (gameState.typedIndex >= gameState.activeRomaString.length) {
           soundCorrect();
-          gameState.score += gameState.currentWord.r.length * 5;
+          gameState.score += gameState.activeRomaString.length * 5;
           if (gameState.isRealtimeBattle && firebaseRoomRef) {
             firebaseRoomRef.child('players/' + myPlayerKey + '/score').set(gameState.score);
           }
