@@ -408,6 +408,7 @@
       object-fit: cover;
     }
 
+    /* ★ 完全に中央寄せを維持する表示エリア */
     .word-area {
       text-align: center;
       margin-bottom: 22px;
@@ -1132,7 +1133,7 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V8';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V9';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
@@ -1326,19 +1327,21 @@
     }
 
     // ==========================================
-    // ★ ひらがな音節ベースの柔軟なローマ字エンジン
+    // ★ ひらがな音節ベースのスマート判定エンジン
     // ==========================================
     const SYLLABLE_MAP = {
       "あ": ["a"], "い": ["i", "yi"], "う": ["u", "wu", "whu"], "え": ["e"], "お": ["o"],
       "か": ["ka", "ca"], "き": ["ki"], "く": ["ku", "cu", "qu"], "け": ["ke"], "こ": ["ko", "co"],
       "さ": ["sa"], "し": ["shi", "si", "ci"], "す": ["su"], "せ": ["se", "ce"], "そ": ["so"],
-      "た": ["ta"], "ち": ["chi", "ti"], "つ": ["tsu", "tu"], "て": ["te"], "と": ["to"],
+      "た": ["ta"], "ち": ["chi", "ti"], "つ": ["tsu", "tu", "tsu"], "て": ["te"], "と": ["to"],
       "な": ["na"], "に": ["ni"], "ぬ": ["nu"], "ね": ["ne"], "の": ["no"],
       "は": ["ha"], "ひ": ["hi"], "ふ": ["fu", "hu"], "へ": ["he"], "ほ": ["ho"],
       "ま": ["ma"], "み": ["mi"], "む": ["mu"], "め": ["me"], "も": ["mo"],
       "や": ["ya"], "ゆ": ["yu"], "よ": ["yo"],
       "ら": ["ra"], "り": ["ri"], "る": ["ru"], "れ": ["re"], "ろ": ["ro"],
-      "わ": ["wa"], "を": ["wo"], "ん": ["nn", "n'", "n"],
+      "わ": ["wa"], "を": ["wo"], 
+      // 「ん」は N 単体ではなく、次との接続で判断できるよう複数候補を持たせる
+      "ん": ["nn", "n'", "n"], 
       "が": ["ga"], "ぎ": ["gi"], "ぐ": ["gu"], "げ": ["ge"], "ご": ["go"],
       "ざ": ["za"], "じ": ["ji", "zi"], "ず": ["zu"], "ぜ": ["ze"], "ぞ": ["zo"],
       "だ": ["da"], "ぢ": ["di"], "づ": ["du"], "で": ["de"], "ど": ["do"],
@@ -1362,14 +1365,12 @@
       "ー": ["-"]
     };
 
-    // ひらがなの文字列を、音節の配列に分解する
     function tokenizeHiragana(hiraStr) {
       let tokens = [];
       let i = 0;
       let twoChars = ["きゃ","きゅ","きょ","しゃ","しゅ","しょ","ちゃ","ちゅ","ちょ","にゃ","にゅ","にょ","ひゃ","ひゅ","ひょ","みゃ","みゅ","みょ","りゃ","りゅ","りょ","ぎゃ","ぎゅ","ぎょ","じゃ","じゅ","じょ","びゃ","びゅ","びょ","ぴゃ","ぴゅ","ぴょ","うぁ","うぃ","うぇ","うぉ","てぃ","でぃ","とぅ","どぅ","ふぁ","ふぃ","ふぇ","ふぉ"];
       
       while (i < hiraStr.length) {
-        // 促音「っ」の処理
         if (hiraStr[i] === "っ" && i + 1 < hiraStr.length) {
           tokens.push({ type: 'sokuon' });
           i++;
@@ -1387,34 +1388,6 @@
       return tokens;
     }
 
-    // 音節トークンから、取りうるすべてのローマ字パターンを自動ツリー展開する
-    function generateAllRomaPaths(tokens) {
-      let currentPaths = [""];
-
-      tokens.forEach(token => {
-        let nextPaths = [];
-        if (token.type === 'sokuon') {
-          // 促音は「次に来る子音の最初の1文字」を重ねる。ここでは簡易的に主要子音候補（k, s, t, p, c, h, z, d, b, j, ch, sh）を追加
-          currentPaths.forEach(p => {
-            ["k", "s", "t", "p", "c", "h", "z", "d", "b", "j"].forEach(c => {
-              nextPaths.push(p + c);
-            });
-          });
-        } else {
-          let candidates = SYLLABLE_MAP[token.hira] || [token.hira];
-          currentPaths.forEach(p => {
-            candidates.forEach(cand => {
-              nextPaths.push(p + cand);
-            });
-          });
-        }
-        currentPaths = Array.from(new Set(nextPaths));
-      });
-
-      return currentPaths;
-    }
-
-    // 単語データ構造（漢字 `k` と ひらがな読み `h`）
     const WORD_DB = {
       0: [
         { k: "道下", h: "みちした" }, { k: "柳原", h: "やなぎはら" }
@@ -1480,7 +1453,7 @@
         { k: "放課後のチャイムが鳴るまでに帰る", h: "ほうかごのちゃいむがなるまでにえる" },
         { k: "黒板の文字が絶妙に見えない指定席", h: "こくばんのもじがぜつみょうにみえないしていせき" },
         { k: "提出期限の直前に本気出すスタイル", h: "ていしゅつきげんのちょくぜんにほんきだすすたいる" },
-        { k: "伝説のサボり王道下遥人の伝説の足跡", h: "でんせつのさぼりおうみちしたはるとのでんせつのあしあと" },
+        { k: "伝説のサボり王道下遥人の伝説の足跡", h: "でんせつのさぼりおうみちしたはるとodeんせつのあしあと" },
         { k: "先生の目を完全に盗んでスマホをいじる技", h: "せんせいのめをかんぜんにぬすんですまほをいじるわざ" },
         { k: "終わらない宿題の山に涙を流す真夜中", h: "おわらないしゅくだいのやまになみだをながすまよなか" },
         { k: "誰もいないプールに忍び込む青春の計画", h: "だれもいないぷーるにしのびこむせいしゅんのけいかく" },
@@ -1595,9 +1568,8 @@
       missCount: 0,
       currentWord: null,
       hiraTokens: [],
-      currentIndex: 0, // 何音節目まで打ったか
-      currentTypedSub: "", // 現在の音節で何文字打ったか
-      displayedRoma: "", // 画面に表示する最新のローマ字
+      currentIndex: 0,
+      currentTypedSub: "",
       rivalName: "対戦相手",
       tugBalance: 0
     };
@@ -1702,7 +1674,7 @@
       document.getElementById('hiddenTypeInput').disabled = true;
       document.getElementById('hiddenTypeInput').value = '';
       document.getElementById('mainStartBtn').style.display = 'block';
-      document.getElementById('mainStartBtn').innerText = 'ゲームスタート (SPACE)';
+      document.getElementById('mainStartBtn').innerText = 'もう一度あそぶ (SPACE)';
       document.getElementById('btnQuitGame').style.display = 'none';
       document.getElementById('michishitaPopup').classList.remove('active');
       document.getElementById('displayKanji').innerText = '道下タイピング';
@@ -1732,12 +1704,6 @@
       gameState.hiraTokens = tokenizeHiragana(selected.h);
       gameState.currentIndex = 0;
       gameState.currentTypedSub = "";
-      
-      // 初回表示用のローマ字文字列を組み立て（デフォルトの候補の先頭をつなぐ）
-      gameState.displayedRoma = gameState.hiraTokens.map(t => {
-        if (t.type === 'sokuon') return 'tsu'; // 仮
-        return (SYLLABLE_MAP[t.hira] ? SYLLABLE_MAP[t.hira][0] : t.hira);
-      }).join('');
 
       const popup = document.getElementById('michishitaPopup');
       if (selected.k.includes("道下")) popup.classList.add('active');
@@ -1746,32 +1712,26 @@
       updatePromptDisplay();
     }
 
-    // 画面全体での打鍵状態の構築と描画
     function updatePromptDisplay() {
       if (!gameState.currentWord) return;
       document.getElementById('displayKanji').innerText = gameState.currentWord.k;
 
-      // まだ打っていない部分のローマ字プレビューを現在の好みに合わせて再構築
       let fullRomaList = [];
       for (let i = 0; i < gameState.hiraTokens.length; i++) {
         let tok = gameState.hiraTokens[i];
         if (i < gameState.currentIndex) {
-          // すでに打ち終えた音節は、実際にユーザーが打った形を維持（またはデフォルト）
           fullRomaList.push(tok.lockedRoma || (SYLLABLE_MAP[tok.hira] ? SYLLABLE_MAP[tok.hira][0] : tok.hira));
         } else if (i === gameState.currentIndex) {
-          // 現在入力中の音節
-          let validCands = tok.type === 'sokuon' ? ["k","s","t","p","c","h","z","d","b","j"] : (SYLLABLE_MAP[tok.hira] || [tok.hira]);
+          let validCands = tok.type === 'sokuon' ? ["tsu"] : (SYLLABLE_MAP[tok.hira] || [tok.hira]);
           let bestCand = validCands.find(c => c.startsWith(gameState.currentTypedSub)) || validCands[0];
           fullRomaList.push(gameState.currentTypedSub + bestCand.substring(gameState.currentTypedSub.length));
         } else {
-          // 未来の音節
-          let validCands = tok.type === 'sokuon' ? ["tu"] : (SYLLABLE_MAP[tok.hira] || [tok.hira]);
+          let validCands = tok.type === 'sokuon' ? ["tsu"] : (SYLLABLE_MAP[tok.hira] || [tok.hira]);
           fullRomaList.push(validCands[0]);
         }
       }
 
       let fullStr = fullRomaList.join('');
-      // 過去に打った合計文字数 + 現在打っているサブ文字数
       let typedCount = 0;
       for (let i = 0; i < gameState.currentIndex; i++) {
         typedCount += (gameState.hiraTokens[i].lockedRoma ? gameState.hiraTokens[i].lockedRoma.length : 0);
@@ -1802,47 +1762,30 @@
       let currentTok = gameState.hiraTokens[gameState.currentIndex];
       let trialSub = gameState.currentTypedSub + inputChar;
 
-      // 促音の特別判定
-      if (currentTok.type === 'sokuon') {
+      // ★「ん」の特別ルール：N単体で即座に通さず、次が母音やN以外なら確定、NNやN'なら2文字目へ繋げる
+      if (currentTok.hira === 'ん') {
         let nextTok = gameState.hiraTokens[gameState.currentIndex + 1];
-        if (nextTok) {
-          let nextCands = SYLLABLE_MAP[nextTok.hira] || [];
-          // 次の音節のローマ字の頭文字のどれかと一致するか、あるいは単独の't'か
-          let matchSokuon = nextCands.some(c => c[0] === inputChar) || inputChar === 't';
-          if (matchSokuon && gameState.currentTypedSub === '') {
-            soundType();
-            currentTok.lockedRoma = inputChar;
-            gameState.currentTypedSub = '';
-            gameState.currentIndex++;
-            gameState.totalStrokes++;
-            gameState.score += 10;
-            checkWordComplete();
-            return;
-          }
+        // 次の文字が「あいうえおやゆよん」のいずれか、または単語の終わりの場合、N単体ではまだ完結しない（nnやn'を待つ）
+        let needsMore = nextTok && ['あ','い','う','え','お','や','ゆ','よ','ん'].includes(nextTok.hira);
+        
+        if (trialSub === 'n' && !needsMore) {
+          // これで「ん」成立！
+          soundType();
+          currentTok.lockedRoma = 'n';
+          gameState.currentTypedSub = '';
+          gameState.currentIndex++;
+          gameState.totalStrokes++;
+          gameState.score += 10;
+          checkWordComplete();
+          return;
         }
       }
 
-      // 通常音節の候補チェック
       let candidates = currentTok.type === 'sokuon' ? ["tsu","tu"] : (SYLLABLE_MAP[currentTok.hira] || [currentTok.hira]);
-      
-      // 「ん (nn / n')」の特別救済ルール：単独の「n」で次が母音やn以外ならその時点で音節クリア扱いにする
-      let isNWithSingleN = false;
-      if (currentTok.hira === 'n' || currentTok.hira === 'ん') {
-        if (trialSub === 'n') {
-          let nextTok = gameState.hiraTokens[gameState.currentIndex + 1];
-          // 次の文字が「あいうえおやゆよん」以外なら、n一文字で「ん」成立とみなす
-          if (!nextTok || ['あ','い','う','え','お','や','ゆ','よ','ん'].includes(nextTok.hira)) {
-            // まだダメ（もう1文字必要）
-          } else {
-            isNWithSingleN = true;
-          }
-        }
-      }
-
       let matchedCand = candidates.find(c => c === trialSub);
       let partialMatched = candidates.some(c => c.startsWith(trialSub));
 
-      if (matchedCand || isNWithSingleN) {
+      if (matchedCand) {
         soundType();
         currentTok.lockedRoma = trialSub;
         gameState.currentTypedSub = '';
