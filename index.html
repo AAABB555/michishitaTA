@@ -408,7 +408,6 @@
       object-fit: cover;
     }
 
-    /* ★ 完全にズレをなくした中央揃えコンテナ */
     .word-area {
       text-align: center;
       margin-bottom: 22px;
@@ -452,7 +451,7 @@
       padding: 2px 10px;
     }
 
-    /* ★ 等幅フォント（monospace）を強制し、文字列全体の中心が常に一致するように修正 */
+    /* ★ 長い文は自動で折り返し（改行）、スクロールは発生しない設定 */
     .word-roma {
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Courier New", monospace;
       font-size: 18px;
@@ -461,7 +460,8 @@
       line-height: 1.6;
       text-align: center;
       display: inline-block;
-      white-space: pre;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     .typed-char {
@@ -1134,14 +1134,14 @@
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
-    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V11';
+    const STORAGE_KEY = 'MICHISHITA_TYPING_DATA_V13';
 
     const RANKS = [
       { id: 0, title: "道下以下", minScore: 0, desc: "初期状態。まずはここを脱出したい屈辱の階級。" },
       { id: 1, title: "ルーキー道下", minScore: 240, desc: "キーボードの配置を思い出し始めた道下。" },
       { id: 2, title: "ビギナー級道下", minScore: 560, desc: "ゆっくりだが確実に打ち込める道下。" },
       { id: 3, title: "レギュラー道下", minScore: 960, desc: "日々の練習を欠かさない道下。" },
-      { id: 4, title: "ベテラン道下", minScore: 1440, desc: "休み時間のタイプター対決で一目置かれる存在。" },
+      { id: 4, title: "ベテラン道下", minScore: 1440, desc: "休み時間のタイピング対決で一目置かれる存在。" },
       { id: 5, title: "エキスパート道下", minScore: 2000, desc: "道下の思考速度と同等以上のスピードを誇る。" },
       { id: 6, title: "エリート級道下", minScore: 2700, desc: "鋼の精神で打ち続ける選ばれし道下。" },
       { id: 7, title: "マスター級道下", minScore: 3500, desc: "学校でも指折りの速さ。道下も嫉妬する。" },
