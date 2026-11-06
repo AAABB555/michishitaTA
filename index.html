@@ -1002,7 +1002,7 @@
         <div class="typing-status">
           <div class="status-left">
             <span>⏳ 残り時間: <b class="color-blue" id="gameTimer">60</b> 秒</span>
-            <button class="btn-quit" id="btnQuitGame" onclick="quitCurrentGame()">✖ 辞める (ESC)</button>
+            <button class="btn-quit" id="btnQuitGame" onclick="quitCurrentGame()">✖ リタイア (ESC)</button>
           </div>
           <span>⚡ スコア: <b class="color-orange" id="gameScore">0</b></span>
         </div>
@@ -1031,14 +1031,14 @@
           
           <div class="word-roma-scroll-wrapper" id="romaScrollWrapper">
             <div class="word-roma" id="displayRomaContainer">
-              <span class="untyped-char">スタートボタンを押してね (または SPACE)</span>
+              <span class="untyped-char">スタートボタンを押してね</span>
             </div>
           </div>
         </div>
 
         <input type="text" id="hiddenTypeInput" class="typing-input" placeholder="ここに入力..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled>
 
-        <button class="btn-clean" id="mainStartBtn" onclick="runCountdownAndStart(false)">ゲームスタート (SPACE)</button>
+        <button class="btn-clean" id="mainStartBtn" onclick="runCountdownAndStart(false)">ゲームスタート</button>
 
         <div class="powerup-strip">
           <button id="useTimeBtn" onclick="usePowerup('time')" class="powerup-btn" disabled>⏳ 集中力+10秒 (<span id="invTimeCount">0</span>)</button>
@@ -1493,7 +1493,7 @@
       5: [
         { k: "道下遥人特設ファンクラブ公式サイト開設記念セール", h: "みちしたはるととくせつふぁんくらぶこうしきさいとかいせきねんせーる" },
         { k: "全体的に状態が悪い文化祭着用サイン入りシャツ", h: "ぜんたいてきにじょうたいがわるいぶんかさいちゃくようさいんいりしゃつ" },
-        { k: "テスト直前に友達のノートを爆速でコピーする", h: "てすとちょくぜんにおともだちののーとをばくそくでこぴーする" },
+        { k: "テスト直전에友達のノートを爆速でコピーする", h: "てすとちょくぜんにおともだちののーとをばくそくでこぴーする" },
         { k: "消しゴムを限界まで細かくちぎり続ける職人の技", h: "けしごむをげんかいまでこまかくちぎりつづけるしょくにんのわざ" },
         { k: "放課後の部室の奥から聞こえてくる謎のうめき声の正体", h: "ほうかごのぶしつのおくからきこえてくるなぞのうめきごいのしょうたい" },
         { k: "先生の怒りを華麗にかわして一目散に逃げ出すサバイバル技術", h: "せんせいのいかりをかれいにかわしていちもくさんににげだすさばいばるぎじゅつ" },
@@ -1667,11 +1667,11 @@
       document.getElementById('hiddenTypeInput').disabled = true;
       document.getElementById('hiddenTypeInput').value = '';
       document.getElementById('mainStartBtn').style.display = 'block';
-      document.getElementById('mainStartBtn').innerText = 'もう一度あそぶ (SPACE)';
+      document.getElementById('mainStartBtn').innerText = 'ゲームスタート';
       document.getElementById('btnQuitGame').style.display = 'none';
       document.getElementById('michishitaPopup').classList.remove('active');
       document.getElementById('displayKanji').innerText = '道下タイピング';
-      document.getElementById('displayRomaContainer').innerHTML = '<span class="untyped-char">スタートボタンを押してね (または SPACE)</span>';
+      document.getElementById('displayRomaContainer').innerHTML = '<span class="untyped-char">スタートボタンを押してね</span>';
       document.getElementById('gameTimer').innerText = '60';
       document.getElementById('gameScore').innerText = '0';
       document.getElementById('battleTugBar').style.display = 'none';
@@ -1880,7 +1880,7 @@
 
       document.getElementById('hiddenTypeInput').disabled = true;
       document.getElementById('mainStartBtn').style.display = 'block';
-      document.getElementById('mainStartBtn').innerText = 'もう一度あそぶ (SPACE)';
+      document.getElementById('mainStartBtn').innerText = 'ゲームスタート';
       document.getElementById('btnQuitGame').style.display = 'none';
       document.getElementById('michishitaPopup').classList.remove('active');
 
@@ -1903,6 +1903,12 @@
         else playerData.stats.losses++;
       }
       saveData();
+
+      // 対戦終了時にFirebaseのルーム情報を掃除（リセット）して次から新しく入れるようにする
+      if (firebaseRoomRef) {
+        firebaseRoomRef.remove();
+        firebaseRoomRef = null;
+      }
 
       let msg = `最終スコア: <b>${gameState.score} 点</b><br>打鍵数 / ミス: <b>${gameState.totalStrokes} / ${gameState.missCount}</b><br>獲得コイン: <b>+${earnedCoins} 枚</b><br>到達うでまえ: <b>${earnedRank.title}</b>`;
       if (gameState.isRealtimeBattle) {
@@ -1946,59 +1952,74 @@
       myVoteDifficulty = 0;
       voteDifficulty(0);
 
-      firebaseRoomRef.child('players/' + myPlayerKey).set({
-        name: playerData.name,
-        score: 0,
-        voteDiff: -1,
-        status: 'waiting'
-      });
-
-      firebaseRoomRef.child('players/' + myPlayerKey).onDisconnect().remove();
-
-      firebaseRoomRef.child('players').on('value', (snapshot) => {
+      // まず部屋のプレイヤー状況を確認してから入室する（乱入防止）
+      firebaseRoomRef.child('players').once('value', (snapshot) => {
         const players = snapshot.val() || {};
         const keys = Object.keys(players);
 
-        if (keys.length < 2) {
-          document.getElementById('firebaseLobbyStatus').innerText = `【${code}】部屋に接続中... 対戦相手を待っています`;
-          document.getElementById('battleVoteArea').style.display = 'none';
+        if (keys.length >= 2) {
+          alert("この部屋はすでに2人対戦中です！別のコードを入力してください。");
+          document.getElementById('firebaseLobbyArea').style.display = 'none';
+          firebaseRoomRef = null;
           return;
         }
 
-        const oppKey = keys.find(k => k !== myPlayerKey);
-        const oppData = players[oppKey] || {};
-
-        if (oppData.status === 'retired') {
-          alert("対戦相手がリタイアしました！あなたの勝利です。");
-          leaveFirebaseRoom();
-          return;
-        }
-
-        document.getElementById('firebaseLobbyStatus').innerText = `対戦相手「${oppData.name || "ライバル"}」と接続完了！`;
-        document.getElementById('battleVoteArea').style.display = 'block';
-
-        // 相手のスコア監視
-        firebaseRoomRef.child('players/' + oppKey + '/score').on('value', (scoreSnap) => {
-          gameState.opponentScore = scoreSnap.val() || 0;
-          if (gameState.isRealtimeBattle) recalculateRealtimeTug();
+        // 入室データを登録
+        firebaseRoomRef.child('players/' + myPlayerKey).set({
+          name: playerData.name,
+          score: 0,
+          voteDiff: -1,
+          status: 'waiting'
         });
 
-        // 両者の投票チェック
-        const myData = players[myPlayerKey] || {};
-        if (myData.voteDiff !== undefined && myData.voteDiff >= 0 && oppData.voteDiff !== undefined && oppData.voteDiff >= 0 && !hasTriggeredBattleStart) {
-          hasTriggeredBattleStart = true;
-          gameState.rivalName = oppData.name || "対戦相手";
+        firebaseRoomRef.child('players/' + myPlayerKey).onDisconnect().remove();
 
-          let chosenDiff = 0;
-          if (myData.voteDiff === oppData.voteDiff) {
-            chosenDiff = myData.voteDiff;
-          } else {
-            chosenDiff = Math.random() < 0.5 ? myData.voteDiff : oppData.voteDiff;
+        // リアルタイム監視
+        firebaseRoomRef.child('players').on('value', (snap) => {
+          const currentPlayers = snap.val() || {};
+          const currentKeys = Object.keys(currentPlayers);
+
+          if (currentKeys.length < 2) {
+            document.getElementById('firebaseLobbyStatus').innerText = `【${code}】部屋に接続中... 対戦相手を待っています`;
+            document.getElementById('battleVoteArea').style.display = 'none';
+            return;
           }
 
-          document.getElementById('firebaseLobbyArea').style.display = 'none';
-          runCountdownAndStart(true, chosenDiff);
-        }
+          const oppKey = currentKeys.find(k => k !== myPlayerKey);
+          const oppData = currentPlayers[oppKey] || {};
+
+          if (oppData.status === 'retired') {
+            alert("対戦相手がリタイアしました！あなたの勝利です。");
+            leaveFirebaseRoom();
+            return;
+          }
+
+          document.getElementById('firebaseLobbyStatus').innerText = `対戦相手「${oppData.name || "ライバル"}」と接続完了！`;
+          document.getElementById('battleVoteArea').style.display = 'block';
+
+          // 相手のスコア監視
+          firebaseRoomRef.child('players/' + oppKey + '/score').on('value', (scoreSnap) => {
+            gameState.opponentScore = scoreSnap.val() || 0;
+            if (gameState.isRealtimeBattle) recalculateRealtimeTug();
+          });
+
+          // 両者の投票チェック
+          const myData = currentPlayers[myPlayerKey] || {};
+          if (myData.voteDiff !== undefined && myData.voteDiff >= 0 && oppData.voteDiff !== undefined && oppData.voteDiff >= 0 && !hasTriggeredBattleStart) {
+            hasTriggeredBattleStart = true;
+            gameState.rivalName = oppData.name || "対戦相手";
+
+            let chosenDiff = 0;
+            if (myData.voteDiff === oppData.voteDiff) {
+              chosenDiff = myData.voteDiff;
+            } else {
+              chosenDiff = Math.random() < 0.5 ? myData.voteDiff : oppData.voteDiff;
+            }
+
+            document.getElementById('firebaseLobbyArea').style.display = 'none';
+            runCountdownAndStart(true, chosenDiff);
+          }
+        });
       });
     }
 
