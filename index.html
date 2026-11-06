@@ -1002,7 +1002,7 @@
         <div class="typing-status">
           <div class="status-left">
             <span>⏳ 残り時間: <b class="color-blue" id="gameTimer">60</b> 秒</span>
-            <button class="btn-quit" id="btnQuitGame" onclick="quitCurrentGame()">✖ 辞める</button>
+            <button class="btn-quit" id="btnQuitGame" onclick="quitCurrentGame()">✖ 辞める (ESC)</button>
           </div>
           <span>⚡ スコア: <b class="color-orange" id="gameScore">0</b></span>
         </div>
@@ -1049,7 +1049,7 @@
     <div class="tab-content" id="viewBattle">
       <div class="card-panel">
         <div class="panel-title">⚔️ 🔒 クラウドリアルタイム対戦</div>
-        <p class="panel-desc">お互いに「🔒 対戦」タブを開き、**同じ4桁の部屋コード**（例: `1111`）を入力して「ルームに入る」を押してください。2人揃うと自動でマッチングし、3秒のカウントダウンを経てリアルタイム綱引きバトルが始まります！</p>
+        <p class="panel-desc">同じ4桁の部屋コード（例: <code>1111</code>）を入力してルームに入室します。2人揃ったら、難易度（くそ簡単〜悪夢）を選んで**「この難易度で投票する」**を押してください。お互いの投票が決定すると対戦が始まります！</p>
 
         <div class="input-row" style="margin-bottom: 14px;">
           <input type="text" id="roomCodeInput" class="code-input-clean" placeholder="4桁の部屋コード (例: 1111)" maxlength="4">
@@ -1058,7 +1058,20 @@
 
         <div class="lobby-box" id="firebaseLobbyArea" style="display: none;">
           <div class="lobby-status" id="firebaseLobbyStatus">ルーム接続中...</div>
-          <button class="btn-half-clean" style="background: #ef4444;" onclick="leaveFirebaseRoom()">部屋を出る・キャンセル</button>
+          <div id="battleVoteArea" style="display: none; margin-top: 12px;">
+            <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: #0284c7;">🎯 対戦の難易度を投票しよう！</div>
+            <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap;">
+              <button class="diff-btn active" id="voteBtn0" onclick="voteDifficulty(0)" style="flex:auto; min-width:70px;">くそ簡単</button>
+              <button class="diff-btn" id="voteBtn1" onclick="voteDifficulty(1)" style="flex:auto; min-width:70px;">簡単</button>
+              <button class="diff-btn" id="voteBtn2" onclick="voteDifficulty(2)" style="flex:auto; min-width:70px;">ふつう</button>
+              <button class="diff-btn" id="voteBtn3" onclick="voteDifficulty(3)" style="flex:auto; min-width:70px;">難しい</button>
+              <button class="diff-btn" id="voteBtn4" onclick="voteDifficulty(4)" style="flex:auto; min-width:70px;">激ムズ</button>
+              <button class="diff-btn" id="voteBtn5" onclick="voteDifficulty(5)" style="flex:auto; min-width:70px;">悪夢</button>
+            </div>
+            <button class="btn-half-clean" id="submitVoteBtn" onclick="confirmVote()">この難易度で投票する</button>
+            <div id="voteStatusText" style="font-size: 12px; font-weight: 800; margin-top: 8px; color: #475569;"></div>
+          </div>
+          <button class="btn-half-clean" style="background: #ef4444; margin-top: 12px;" onclick="leaveFirebaseRoom()">部屋を出る・キャンセル</button>
         </div>
       </div>
 
@@ -1081,7 +1094,7 @@
         <div class="shop-card-clean">
           <div class="shop-card-icon">⏳</div>
           <div class="shop-card-title">道下の集中力 (+10秒)</div>
-          <div class="shop-card-desc">タイピングプレイ中にボタンを押すと、その場で制限時間を10秒延長できます！</div>
+          <div class="shop-card-desc">タイピングプレイ中にボタンを押すと、その場で制限時間を10秒延長できます！(※対戦モードでは使用不可)</div>
           <div class="shop-card-bottom">
             <span class="shop-card-price">🪙 100枚</span>
             <button class="btn-buy-chip" onclick="buyShopItem('time', 100)">購入</button>
@@ -1226,7 +1239,7 @@
       document.getElementById('playerRankBadge').innerText = currentRank.title;
       document.getElementById('tugPlayerName').innerText = playerData.name;
       document.getElementById('invTimeCount').innerText = playerData.inventory.time || 0;
-      document.getElementById('useTimeBtn').disabled = (playerData.inventory.time || 0) <= 0 || !gameState.isRunning;
+      document.getElementById('useTimeBtn').disabled = (playerData.inventory.time || 0) <= 0 || !gameState.isRunning || gameState.isRealtimeBattle;
       document.getElementById('battleStatsSummary').innerText = `${playerData.stats.matches}試合 ${playerData.stats.wins}勝 ${playerData.stats.losses}敗 (寝返り発生: ${playerData.stats.betrayals}回)`;
       const hellBtn = document.getElementById('diffHellBtn');
       hellBtn.innerText = playerData.rankId >= 6 ? "地獄" : "🔒 地獄";
@@ -1510,6 +1523,7 @@
     };
 
     let currentDifficulty = 0;
+    let myVoteDifficulty = 0;
     let gameState = {
       isRunning: false,
       isRealtimeBattle: false,
@@ -1544,9 +1558,27 @@
       }
     }
 
-    function runCountdownAndStart(isRealtime = false) {
+    function voteDifficulty(diff) {
+      myVoteDifficulty = diff;
+      for (let i = 0; i <= 5; i++) {
+        const btn = document.getElementById(`voteBtn${i}`);
+        if (btn) {
+          if (i === diff) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      }
+    }
+
+    function confirmVote() {
+      if (!firebaseRoomRef) return;
+      document.getElementById('submitVoteBtn').disabled = true;
+      document.getElementById('submitVoteBtn').innerText = "投票完了！相手を待っています...";
+      firebaseRoomRef.child('players/' + myPlayerKey + '/voteDiff').set(myVoteDifficulty);
+    }
+
+    function runCountdownAndStart(isRealtime = false, diffToUse = 0) {
       switchView('play');
-      selectDifficulty(currentDifficulty);
+      selectDifficulty(diffToUse);
 
       const overlay = document.getElementById('countdownOverlay');
       const numEl = document.getElementById('countdownNum');
@@ -1611,14 +1643,23 @@
 
     function quitCurrentGame() {
       if (!gameState.isRunning) return;
-      if (confirm("タイピングを中断して辞めますか？")) {
+      if (confirm("タイピングを中断してリタイアしますか？（※リタイアした方の負けになります）")) {
         clearInterval(gameState.timerId);
         gameState.timerId = null;
         gameState.isRunning = false;
+
         if (gameState.isRealtimeBattle && firebaseRoomRef) {
-          firebaseRoomRef.child('players/' + myPlayerKey + '/status').set('quit');
+          firebaseRoomRef.child('players/' + myPlayerKey + '/status').set('retired');
         }
-        resetPlayUI();
+
+        if (gameState.isRealtimeBattle) {
+          playerData.stats.matches++;
+          playerData.stats.losses++;
+          saveData();
+          showResultModal(`💔 <b>リタイアによる敗北…</b><br><br>最終スコア: <b>${gameState.score} 点</b>`);
+        } else {
+          resetPlayUI();
+        }
       }
     }
 
@@ -1756,6 +1797,7 @@
 
       if (gameState.isRealtimeBattle && firebaseRoomRef) {
         firebaseRoomRef.child('players/' + myPlayerKey + '/score').set(gameState.score);
+        recalculateRealtimeTug();
       }
       updateGameStatsUI();
     });
@@ -1775,7 +1817,7 @@
         const modal = document.getElementById('reveal-modal');
         if (!gameState.isRunning && modal.style.display !== 'flex') {
           e.preventDefault();
-          runCountdownAndStart(false);
+          runCountdownAndStart(false, currentDifficulty);
         }
       } else if (e.code === 'Escape' && gameState.isRunning) {
         quitCurrentGame();
@@ -1813,7 +1855,7 @@
     }
 
     function usePowerup(type) {
-      if (!gameState.isRunning) return;
+      if (!gameState.isRunning || gameState.isRealtimeBattle) return;
       if (type === 'time' && (playerData.inventory.time || 0) > 0) {
         playerData.inventory.time--;
         gameState.timeLeft += 10;
@@ -1884,8 +1926,7 @@
 
     let firebaseRoomRef = null;
     let myPlayerKey = 'p_' + Math.random().toString(36).substring(2, 9);
-    let opponentPlayerKey = null;
-    let hasStartedFirebaseBattle = false;
+    let hasTriggeredBattleStart = false;
 
     function joinFirebaseRoom() {
       const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
@@ -1896,13 +1937,19 @@
 
       document.getElementById('firebaseLobbyArea').style.display = 'block';
       document.getElementById('firebaseLobbyStatus').innerText = `【${code}】の部屋に入室中... 相手を待っています`;
+      document.getElementById('battleVoteArea').style.display = 'none';
+      document.getElementById('submitVoteBtn').disabled = false;
+      document.getElementById('submitVoteBtn').innerText = "この難易度で投票する";
 
       firebaseRoomRef = db.ref('typing_rooms/' + code);
-      hasStartedFirebaseBattle = false;
+      hasTriggeredBattleStart = false;
+      myVoteDifficulty = 0;
+      voteDifficulty(0);
 
       firebaseRoomRef.child('players/' + myPlayerKey).set({
         name: playerData.name,
         score: 0,
+        voteDiff: -1,
         status: 'waiting'
       });
 
@@ -1912,35 +1959,65 @@
         const players = snapshot.val() || {};
         const keys = Object.keys(players);
 
-        if (keys.length >= 2 && !hasStartedFirebaseBattle) {
-          opponentPlayerKey = keys.find(k => k !== myPlayerKey);
-          if (opponentPlayerKey) {
-            hasStartedFirebaseBattle = true;
-            const oppName = players[opponentPlayerKey].name || "対戦相手";
-            gameState.rivalName = oppName;
-            document.getElementById('firebaseLobbyStatus').innerText = `「${oppName}」と接続完了！`;
+        if (keys.length < 2) {
+          document.getElementById('firebaseLobbyStatus').innerText = `【${code}】部屋に接続中... 対戦相手を待っています`;
+          document.getElementById('battleVoteArea').style.display = 'none';
+          return;
+        }
 
-            firebaseRoomRef.child('players/' + opponentPlayerKey + '/score').on('value', (scoreSnap) => {
-              gameState.opponentScore = scoreSnap.val() || 0;
-              if (gameState.isRealtimeBattle) recalculateRealtimeTug();
-            });
+        const oppKey = keys.find(k => k !== myPlayerKey);
+        const oppData = players[oppKey] || {};
 
-            setTimeout(() => {
-              document.getElementById('firebaseLobbyArea').style.display = 'none';
-              runCountdownAndStart(true);
-            }, 1000);
+        if (oppData.status === 'retired') {
+          alert("対戦相手がリタイアしました！あなたの勝利です。");
+          leaveFirebaseRoom();
+          return;
+        }
+
+        document.getElementById('firebaseLobbyStatus').innerText = `対戦相手「${oppData.name || "ライバル"}」と接続完了！`;
+        document.getElementById('battleVoteArea').style.display = 'block';
+
+        // 相手のスコア監視
+        firebaseRoomRef.child('players/' + oppKey + '/score').on('value', (scoreSnap) => {
+          gameState.opponentScore = scoreSnap.val() || 0;
+          if (gameState.isRealtimeBattle) recalculateRealtimeTug();
+        });
+
+        // 両者の投票チェック
+        const myData = players[myPlayerKey] || {};
+        if (myData.voteDiff !== undefined && myData.voteDiff >= 0 && oppData.voteDiff !== undefined && oppData.voteDiff >= 0 && !hasTriggeredBattleStart) {
+          hasTriggeredBattleStart = true;
+          gameState.rivalName = oppData.name || "対戦相手";
+
+          let chosenDiff = 0;
+          if (myData.voteDiff === oppData.voteDiff) {
+            chosenDiff = myData.voteDiff;
+          } else {
+            chosenDiff = Math.random() < 0.5 ? myData.voteDiff : oppData.voteDiff;
           }
+
+          document.getElementById('firebaseLobbyArea').style.display = 'none';
+          runCountdownAndStart(true, chosenDiff);
         }
       });
     }
 
     function leaveFirebaseRoom() {
       if (firebaseRoomRef) {
-        firebaseRoomRef.child('players/' + myPlayerKey).remove();
+        if (gameState.isRunning) {
+          firebaseRoomRef.child('players/' + myPlayerKey + '/status').set('retired');
+        } else {
+          firebaseRoomRef.child('players/' + myPlayerKey).remove();
+        }
         firebaseRoomRef = null;
       }
       document.getElementById('firebaseLobbyArea').style.display = 'none';
-      alert("部屋を出ました。");
+      if (gameState.isRunning) {
+        clearInterval(gameState.timerId);
+        gameState.timerId = null;
+        gameState.isRunning = false;
+        resetPlayUI();
+      }
     }
 
     function switchView(view) {
