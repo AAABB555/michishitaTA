@@ -1109,7 +1109,7 @@
 
   <script>
     const firebaseConfig = {
-      databaseURL: "https://michishita-typing-default-rtdb.firebaseio.com/"
+      databaseURL: "https://michishita-typing-94d91-default-rtdb.firebaseio.com"
     };
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
@@ -1118,15 +1118,7 @@
 
     const CUSTOM_IMAGES = {
       boardImage: "",
-      globalBackgrounds: {
-        0: "",
-        1: "",
-        2: "",
-        3: "",
-        4: "",
-        5: "",
-        6: ""
-      },
+      globalBackgrounds: { 0: "", 1: "", 2: "", 3: "", 4: "", 5: "", 6: "" },
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
 
@@ -1355,7 +1347,7 @@
       "てぃ": ["thi"], "でぃ": ["dhi"],
       "とぅ": ["twu"], "どぅ": ["dwu"],
       "ふぁ": ["fa"], "ふぃ": ["fi"], "ふぇ": ["fe"], "ふぉ": ["fo"],
-      "ー": ["-"]
+      "—": ["-"]
     };
 
     function tokenizeHiragana(hiraStr) {
@@ -1581,7 +1573,6 @@
 
     function startGame(isRealtime = false) {
       if (gameState.isRunning) return;
-
       gameState.isRunning = true;
       gameState.isRealtimeBattle = isRealtime;
       gameState.score = 0;
