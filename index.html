@@ -6,7 +6,6 @@
   <meta name="robots" content="noindex, nofollow">
   <title>道下タイピング - 道下ファンクラブ公式特設</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Firebase SDKの読み込み -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
@@ -481,7 +480,6 @@
       text-underline-offset: 4px;
     }
 
-    /* ★ 道下ポップアップ：透明度をなくしてくっきり表示し、z-index: 1 で文字の背後に配置 */
     .michishita-popup {
       position: absolute;
       right: 14px;
@@ -989,7 +987,6 @@
       <div class="tab-item" id="tabProfileBtn" onclick="switchView('profile')">称号</div>
     </div>
 
-    <!-- VIEW 1: タイピング -->
     <div class="tab-content active" id="viewPlay">
       <div class="diff-group">
         <button class="diff-btn active" id="diffBtn0" onclick="selectDifficulty(0)">クソ簡単</button>
@@ -1049,7 +1046,6 @@
       </div>
     </div>
 
-    <!-- VIEW 2: 🔒 対戦 -->
     <div class="tab-content" id="viewBattle">
       <div class="card-panel">
         <div class="panel-title">⚔️ 🔒 クラウドリアルタイム対戦</div>
@@ -1072,7 +1068,6 @@
       </div>
     </div>
 
-    <!-- VIEW 3: 全員共通オンラインランキング -->
     <div class="tab-content" id="viewLeaderboard">
       <div class="card-panel">
         <div class="panel-title">👑 全員参加！オンライン ハイスコアランキング</div>
@@ -1081,7 +1076,6 @@
       </div>
     </div>
 
-    <!-- VIEW 4: 道下ショップ -->
     <div class="tab-content" id="viewShop">
       <div class="shop-grid-clean">
         <div class="shop-card-clean">
@@ -1096,7 +1090,6 @@
       </div>
     </div>
 
-    <!-- VIEW 5: 道下称号 -->
     <div class="tab-content" id="viewProfile">
       <div class="card-panel">
         <div class="panel-title">🏆 うでまえ進捗（全10段階）</div>
@@ -1115,7 +1108,6 @@
   </div>
 
   <script>
-    // Firebase設定
     const firebaseConfig = {
       databaseURL: "https://michishita-typing-default-rtdb.firebaseio.com/"
     };
@@ -1127,13 +1119,13 @@
     const CUSTOM_IMAGES = {
       boardImage: "",
       globalBackgrounds: {
-        0: "watermarked_img_14390851635249956558.jpg",
-        1: "watermarked_img_8656326818003068049.jpg",
-        2: "watermarked_img_4915851999057139426.jpg",
-        3: "watermarked_img_10233409850311831686.jpg",
-        4: "watermarked_img_15827460104793939469.jpg",
-        5: "watermarked_img_2091805686496412697.jpg",
-        6: "watermarked_img_2071051073182737973.jpg"
+        0: "",
+        1: "",
+        2: "",
+        3: "",
+        4: "",
+        5: "",
+        6: ""
       },
       michishitaCharacter: "5853a5e2-b83c-4b83-982f-9c342a2d45c7.jpg"
     };
@@ -1420,7 +1412,7 @@
         { k: "百", h: "ひゃく" }, { k: "腕", h: "うで" }, { k: "神", h: "かみ" },
         { k: "芋", h: "いも" }, { k: "理科", h: "りか" }, { k: "得", h: "とく" },
         { k: "剣", h: "けんん" }, { k: "丸", h: "まる" }, { k: "味噌", h: "みそ" },
-        { k: "亀", h: "かめ" }, { k: "春", h: "はる" }, { k: "夏", h: "なつ" },
+        { k: "亀", h: "かめ" }, { k: "春", h: "はる" }, { k: "夏", h: "なつ" }
       ],
       2: [
         { k: "道下遥人", h: "みちしたはると" }, 
@@ -1513,7 +1505,7 @@
         { k: "放課後の誰もいない教室で自分の消しゴムと会話を始める奇行", h: "ほうかごのだれもいないきょうしつでじぶんのけしごむとかいわをはじめるきこう" },
         { k: "数学の数式がすべて猫の顔に見えてくる幻覚に襲われる授業中", h: "すうがくのすうしきがすべてねこのかおにみえてくるげんかくにおそわれるじゅぎょうちゅう" },
         { k: "世界平和のために今日もうどんを食べる道下遥人の壮大な使命", h: "せかいへいわのためにつきょうもうどんをたべるみちしたはるとのそうだいなしめい" },
-        { k: "教科書の全ての文字が道下という漢字に置き換わる恐怖の現象", h: "きょうかしょのすべてのもじがみちしたというかんじにおきかわるきょうふのげんしょう" },
+        { k: "教科書のすべての文字が道下という漢字に置き換わる恐怖の現象", h: "きょうかしょのすべてのもじがみちしたというかんじにおきかわるきょうふのげんしょう" },
         { k: "窓の外を飛んでいるドラゴンと目を合わせて無言でうなずく授業", h: "まどのそとをとんでいるどらごんとめをあわせてむごんでうなずくじゅぎょう" },
         { k: "消しゴムを限界まで削りすぎて消しゴムの概念を消失させる男", h: "けしごむをげんかいまでけずりすぎてけしごむのがいねんをしょうしつさせるおとこ" },
         { k: "自分の名前を3回連続で書き忘れてテストの点数が完全になくなる", h: "じぶんのなまえをさんかいれんぞくでかきわすれててすとのてんすうがかんぜんになくなる" },
@@ -1525,7 +1517,7 @@
       ]
     };
 
-    let currentDifficulty = 0; // ★ 修正：最初は必ず「クソ簡単（0）」から始まるように変更
+    let currentDifficulty = 0;
     let gameState = {
       isRunning: false,
       isRealtimeBattle: false,
@@ -1979,7 +1971,7 @@
     window.onload = function() {
       applyCustomImages();
       loadData();
-      selectDifficulty(0); // ★ 修正：起動時に確実に「クソ簡単」を選択状態にする
+      selectDifficulty(0);
       initGlobalRankingSync();
     };
   </script>
