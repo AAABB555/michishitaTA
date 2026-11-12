@@ -201,15 +201,17 @@
       border-radius: 50%;
     }
 
+    /* ── コマの基本構造（枠線や立体感をキープ） ── */
     .disc {
       width: 84%;
       height: 84%;
       border-radius: 50%;
-      background-size: cover;
-      background-position: center;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      transition: transform 0.4s ease-in-out;
-      transform-style: preserve-3d;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .disc.black {
       background-color: #1e293b;
@@ -219,9 +221,20 @@
       background-color: #ffffff;
       border: 2.5px solid #cbd5e1;
     }
-    /* 挟まれてひっくり返る時専用のアニメーションクラス */
-    .disc.flip {
-      transform: rotateY(180deg) scale(1.15);
+
+    /* ── 中身の画像（またはカラー部分）だけを回転させるコンテナ ── */
+    .disc-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.4s ease-in-out;
+      transform-style: preserve-3d;
+    }
+    /* 挟まれてひっくり返る時は「中身だけ」が回転する */
+    .disc-inner.flip {
+      transform: rotateY(180deg) scale(1.1);
     }
 
     /* 結果発表モーダル */
@@ -307,8 +320,8 @@
 
   <script>
     // ▼▼▼ 【ここに画像のリンク（URL）をそれぞれ設定してください】 ▼▼▼
-    const BLACK_IMAGE_URL = ""; // 黒の画像URL
-    const WHITE_IMAGE_URL = ""; // 白の画像URL
+    const BLACK_IMAGE_URL = ""; // 黒の画像URL (空欄なら#1e293bの色)
+    const WHITE_IMAGE_URL = ""; // 白の画像URL (空欄なら#ffffffの色)
     // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
     // ▼▼▼ あなたのFirebase設定 ▼▼▼
@@ -334,7 +347,7 @@
     let isPcMode = false;
     let roomRef = null;
     let hasShownResult = false;
-    let previousBoard = null; // 前回の盤面状態を保持して変更があった場所を特定する
+    let previousBoard = null;
 
     const DIRS = [
       [-1,-1], [-1,0], [-1,1],
@@ -543,26 +556,32 @@
           cell.onclick = () => handleCellClick(r, c);
 
           if (val !== 0) {
+            // 外側の枠（立体感・ボーダーを固定保持する要素）
             const disc = document.createElement("div");
             disc.className = "disc " + (val === 1 ? "black" : "white");
+
+            // 内側の中身（画像または色が回転する要素）
+            const inner = document.createElement("div");
+            inner.className = "disc-inner";
+            
             const imgUrl = val === 1 ? BLACK_IMAGE_URL : WHITE_IMAGE_URL;
             if (imgUrl) {
-              disc.style.backgroundImage = `url(${imgUrl})`;
+              inner.style.backgroundImage = `url(${imgUrl})`;
             }
 
-            // ★ ここで「前回の盤面から新しく色が変わった（裏返った）コマ」だけを判定してアニメーションさせる
+            // 挟まれて裏返った時だけ「内側（disc-inner）」を回転させる
             if (previousBoard && previousBoard[r][c] !== 0 && previousBoard[r][c] !== val) {
-              disc.classList.add("flip");
-              setTimeout(() => disc.classList.remove("flip"), 400);
+              inner.classList.add("flip");
+              setTimeout(() => inner.classList.remove("flip"), 400);
             }
 
+            disc.appendChild(inner);
             cell.appendChild(disc);
           }
           boardEl.appendChild(cell);
         }
       }
 
-      // 現在の盤面を「次回の比較用」として保存
       previousBoard = currentBoard.map(row => [...row]);
 
       const statusEl = document.getElementById("status");
